@@ -1,4 +1,5 @@
 .env
+target/
 logs
 *.log
 .DS_STORE
