@@ -34,3 +34,12 @@ So that I dont have to manually cancel a booking.
 -As an admin,
 I want a page where I can see all rooms,
 So that I can add or remove rooms that people can book/use.
+
+ISMAIL:
+(no duplicant user stories with Richard)
+
+As a student, I want to book a room for a specific date and time so that I can reserve study space in advance.
+
+As an admin, I want to view all room bookings so that I can monitor room usage.
+
+As an admin, I want to view and manage user strike counts so that I can enforce the no-show policy.
