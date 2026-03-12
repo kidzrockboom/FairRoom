@@ -1,8 +1,4 @@
-use axum::{
-    Json, Router,
-    http::StatusCode,
-    routing::{get, post},
-};
+use server::create_app;
 
 #[tokio::main]
 async fn main() {
@@ -13,20 +9,4 @@ async fn main() {
         .await
         .unwrap();
     axum::serve(listener, app).await.unwrap();
-}
-
-// basic handler that responds with a static string
-async fn root() -> &'static str {
-    "Hello, World!"
-}
-
-// build our application with a route
-fn create_app() -> Router {
-    Router::new()
-        .route("/", get(root))
-        .route("/health_check", get(health_check))
-}
-
-async fn health_check() -> StatusCode {
-    StatusCode::OK
 }
