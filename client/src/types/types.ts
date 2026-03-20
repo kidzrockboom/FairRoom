@@ -1,6 +1,8 @@
+export type Amenity = "wifi" | "projector" | "whiteboard";
+
 export interface TimeSlot {
-  time: string;
-  status: "available" | "reserved";
+  hour: number; // 0..23
+  available: boolean;
 }
 
 export interface Room {
@@ -9,18 +11,18 @@ export interface Room {
   capacity: number;
   location: string;
   roomCode: string;
-  amenities: string[];
+  amenities: Amenity[];
   usageNotes: string;
-  slots: TimeSlot[];
+  slots: TimeSlot[]; // per-hour availability
 }
 
 export interface Booking {
   id: number;
   roomId: number;
   userId: number;
-  date: string;
-  startTime: string;
-  endTime: string;
+  date: string; // YYYY-MM-DD
+  startHour: number; // 0..23
+  endHour: number;   // 1..24
 }
 
 export interface User {

@@ -1,19 +1,10 @@
-import type { Room, Booking, User, TimeSlot } from "../types/types";
+import type { Booking, Room, User, TimeSlot } from "../types/types";
 
-const defaultSlots: TimeSlot[] = [
-  { time: "08:00 AM", status: "available" },
-  { time: "09:00 AM", status: "reserved" },
-  { time: "10:00 AM", status: "available" },
-  { time: "11:00 AM", status: "available" },
-  { time: "12:00 PM", status: "reserved" },
-  { time: "01:00 PM", status: "reserved" },
-  { time: "02:00 PM", status: "available" },
-  { time: "03:00 PM", status: "available" },
-  { time: "04:00 PM", status: "available" },
-  { time: "05:00 PM", status: "available" },
-  { time: "06:00 PM", status: "reserved" },
-  { time: "07:00 PM", status: "available" },
-];
+const createSlots = (reservedHours: number[]): TimeSlot[] =>
+  Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    available: !reservedHours.includes(hour),
+  }));
 
 export const rooms: Room[] = [
   {
@@ -22,10 +13,9 @@ export const rooms: Room[] = [
     capacity: 6,
     location: "Central Library, Wing B, Level 2",
     roomCode: "RM-204-CL",
-    amenities: ["4K Smart TV", "Central AC", "Glass Whiteboard"],
-    usageNotes:
-      "This room is optimized for group discussions and digital presentations.",
-    slots: defaultSlots,
+    amenities: ["wifi", "projector", "whiteboard"],
+    usageNotes: "Optimized for group discussions and digital presentations.",
+    slots: createSlots([9, 12, 13, 18]),
   },
   {
     id: 2,
@@ -33,9 +23,9 @@ export const rooms: Room[] = [
     capacity: 20,
     location: "Level 1, Main Hall",
     roomCode: "RM-A-MH",
-    amenities: ["Projector", "PA System", "Whiteboard"],
+    amenities: ["wifi", "projector"],
     usageNotes: "Best for seminars and presentations.",
-    slots: defaultSlots,
+    slots: createSlots([10, 11, 14, 15]),
   },
   {
     id: 3,
@@ -43,9 +33,39 @@ export const rooms: Room[] = [
     capacity: 1,
     location: "Library, North",
     roomCode: "QP-04",
-    amenities: ["Desk Lamp", "Charging Port", "Noise Insulation"],
+    amenities: ["wifi"],
     usageNotes: "Single-person silent focus pod.",
-    slots: defaultSlots,
+    slots: createSlots([8, 16, 17]),
+  },
+  {
+    id: 4,
+    name: "Lab 210",
+    capacity: 15,
+    location: "Level 2, West Wing",
+    roomCode: "LAB-210",
+    amenities: ["wifi", "whiteboard"],
+    usageNotes: "Ideal for technical collaboration.",
+    slots: createSlots([9, 10, 19]),
+  },
+  {
+    id: 5,
+    name: "Meeting Room 09",
+    capacity: 10,
+    location: "Level 4, Center",
+    roomCode: "MR-09",
+    amenities: ["projector", "whiteboard"],
+    usageNotes: "Good for planning sessions.",
+    slots: createSlots([12, 13, 14]),
+  },
+  {
+    id: 6,
+    name: "Room 302",
+    capacity: 4,
+    location: "Level 3, East Wing",
+    roomCode: "RM-302",
+    amenities: ["wifi", "whiteboard"],
+    usageNotes: "Compact room for small groups.",
+    slots: createSlots([11, 15, 16]),
   },
 ];
 
