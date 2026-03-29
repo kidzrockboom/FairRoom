@@ -1,0 +1,39 @@
+name: Architecture Alignment
+description: Track repo drift that must be reconciled against the approved architecture.
+title: "[Alignment] "
+body:
+  - type: input
+    id: affected_stories
+    attributes:
+      label: Affected story IDs
+      placeholder: US-006, US-013, US-015
+    validations:
+      required: true
+  - type: textarea
+    id: drift
+    attributes:
+      label: Drift observed
+      description: Describe what is inconsistent today.
+    validations:
+      required: true
+  - type: textarea
+    id: target
+    attributes:
+      label: Approved target state
+      description: Describe the aligned end state from the architecture deliverables.
+    validations:
+      required: true
+  - type: textarea
+    id: repo_areas
+    attributes:
+      label: Repo areas to touch
+      placeholder: client/src/types/types.ts, server/src/models/..., server/migration/src/...
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done looks like
+      description: State the measurable completion criteria.
+    validations:
+      required: true

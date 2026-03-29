@@ -1,65 +1,77 @@
-name: Rust
+name: CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
-env:
-  CARGO_TERM_COLOR: always
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  test:
-    name: Test
+  frontend:
+    name: Frontend lint + build
     runs-on: ubuntu-latest
-    defaults: 
-      run: 
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+
+  backend-test:
+    name: Backend test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
         working-directory: server
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
         run: cargo test
 
-  fmt:
-    name: Rustfmt
+  backend-fmt:
+    name: Backend fmt
     runs-on: ubuntu-latest
-    defaults: 
-      run: 
+    defaults:
+      run:
         working-directory: server
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
       - name: Enforce formatting
         run: cargo fmt --check
 
-  clippy:
-    name: Clippy
+  backend-clippy:
+    name: Backend clippy
     runs-on: ubuntu-latest
-    defaults: 
-      run: 
+    defaults:
+      run:
         working-directory: server
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
-      - name: Linting
+      - name: Lint
         run: cargo clippy -- -D warnings
-
-  coverage:
-    name: Code coverage
-    runs-on: ubuntu-latest
-    defaults: 
-      run: 
-        working-directory: server
-    container:
-      image: xd009642/tarpaulin
-      options: --security-opt seccomp=unconfined
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Generate code coverage
-        run: |
-          cargo tarpaulin --verbose --workspace

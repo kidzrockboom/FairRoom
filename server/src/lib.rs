@@ -1,7 +1,7 @@
 pub mod models;
 
 use axum::{
-    Json, Router,
+    Router,
     http::StatusCode,
     routing::{get, post},
 };

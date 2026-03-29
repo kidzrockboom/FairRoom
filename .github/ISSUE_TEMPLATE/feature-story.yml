@@ -1,0 +1,54 @@
+name: Feature / Story Scope
+description: Create a scoped implementation issue tied to one or more FairRoom stories.
+title: "[Feature] "
+body:
+  - type: input
+    id: story_ids
+    attributes:
+      label: Story IDs
+      description: Add the affected story IDs.
+      placeholder: US-001, US-006
+    validations:
+      required: true
+  - type: input
+    id: sprint
+    attributes:
+      label: Sprint bucket
+      placeholder: Sprint 1 / Sprint 2 / Sprint 3
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Scope summary
+      description: State the exact feature boundary.
+    validations:
+      required: true
+  - type: textarea
+    id: repo_areas
+    attributes:
+      label: Repo areas
+      description: List the expected files, modules, or layers.
+      placeholder: client/src/pages/... , server/src/... , server/migration/src/...
+    validations:
+      required: true
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Done looks like
+      description: List the concrete outputs required for this issue.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies / blockers
+      description: Link any prerequisite issues or blockers.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Architecture checks
+      options:
+        - label: Scope aligns with the locked domain model
+        - label: Scope aligns with the approved API contract
+        - label: Scope does not depend on old mock-only fields
