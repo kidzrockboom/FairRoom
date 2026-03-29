@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FilterPanel from "../../components/dashboard/FilterPanel";
-import { rooms } from "../../data/mockData";
+import { fairroomApi } from "../../api/fairroomApi";
+import type { RoomSearchItem } from "../../api/contracts";
 
 type SortOption = "capacity-asc" | "capacity-desc" | "name-asc";
 const ITEMS_PER_PAGE = 6;
@@ -19,6 +20,10 @@ function SearchRoomsPage() {
   });
   const [sortBy, setSortBy] = useState<SortOption>("capacity-asc");
   const [page, setPage] = useState(1);
+  const [roomResults, setRoomResults] = useState<RoomSearchItem[]>([]);
+  const [totalRooms, setTotalRooms] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const toggleCapacity = (value: number) => {
     setPage(1);
@@ -44,32 +49,69 @@ function SearchRoomsPage() {
     setPage(1);
   };
 
-  const filteredRooms = useMemo(() => {
-    let result = rooms.filter((room) => {
-      const matchName = room.name.toLowerCase().includes(search.toLowerCase());
-      const matchCapacity = minCapacity === null ? true : room.capacity >= minCapacity;
+  useEffect(() => {
+    let isCancelled = false;
 
-      const matchTime =
-        timeRange === null
-          ? true
-          : room.slots
-              .filter((s) => s.hour >= timeRange.start && s.hour < timeRange.end)
-              .some((s) => s.available);
+    const loadRooms = async () => {
+      setLoading(true);
+      setError(null);
 
-      return matchName && matchCapacity && matchTime;
-    });
+      const startsAt =
+        date && timeRange
+          ? new Date(`${date}T${String(timeRange.start).padStart(2, "0")}:00:00`).toISOString()
+          : undefined;
+      const endsAt =
+        date && timeRange
+          ? new Date(`${date}T${String(timeRange.end).padStart(2, "0")}:00:00`).toISOString()
+          : undefined;
 
-    if (sortBy === "capacity-asc") result = [...result].sort((a, b) => a.capacity - b.capacity);
-    if (sortBy === "capacity-desc") result = [...result].sort((a, b) => b.capacity - a.capacity);
-    if (sortBy === "name-asc") result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+      try {
+        const response = await fairroomApi.searchRooms({
+          search: search || undefined,
+          minCapacity: minCapacity ?? undefined,
+          startsAt,
+          endsAt,
+          onlyAvailable: true,
+          page,
+          pageSize: ITEMS_PER_PAGE,
+        });
+
+        if (isCancelled) return;
+
+        setRoomResults(response.items);
+        setTotalRooms(response.total);
+      } catch (loadError) {
+        if (isCancelled) return;
+
+        setError(loadError instanceof Error ? loadError.message : "Unable to load rooms.");
+        setRoomResults([]);
+        setTotalRooms(0);
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadRooms();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [date, minCapacity, page, search, timeRange]);
+
+  const sortedRooms = useMemo(() => {
+    const result = [...roomResults];
+
+    if (sortBy === "capacity-asc") result.sort((a, b) => a.capacity - b.capacity);
+    if (sortBy === "capacity-desc") result.sort((a, b) => b.capacity - a.capacity);
+    if (sortBy === "name-asc") result.sort((a, b) => a.name.localeCompare(b.name));
 
     return result;
-  }, [search, minCapacity, timeRange, sortBy]);
+  }, [roomResults, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRooms.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(totalRooms / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
-  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedRooms = filteredRooms.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
   const hourLabel = (hour: number) => {
     const h = hour % 24;
@@ -138,7 +180,7 @@ function SearchRoomsPage() {
           </div>
 
           <div className="list-head">
-            <h2>Showing {filteredRooms.length} Rooms</h2>
+              <h2>Showing {totalRooms} Rooms</h2>
             <div className="sort-wrap">
               <label>Sort by:</label>
               <select
@@ -155,16 +197,22 @@ function SearchRoomsPage() {
             </div>
           </div>
 
-          {filteredRooms.length === 0 ? (
+          {loading ? (
+            <div className="empty-state">Loading rooms...</div>
+          ) : error ? (
+            <div className="empty-state">{error}</div>
+          ) : sortedRooms.length === 0 ? (
             <div className="empty-state">No rooms found. Try changing your filters.</div>
           ) : (
             <>
               <div className="rooms-grid">
-                {paginatedRooms.map((room) => (
+                {sortedRooms.map((room) => (
                   <article key={room.id} className="room-card">
                     <div className="room-top">
                       <h3>{room.name}</h3>
-                      <span className="status-pill">Available</span>
+                      <span className="status-pill">
+                        {room.isAvailableForRequestedRange ? "Available" : "Unavailable"}
+                      </span>
                     </div>
 
                     <p className="muted">{room.location}</p>
@@ -173,14 +221,22 @@ function SearchRoomsPage() {
                     <div className="card-actions">
                       <button
                         className="btn-secondary"
-                        onClick={() => navigate(`/app/rooms/${room.id}`)}
+                        onClick={() =>
+                          navigate(`/app/rooms/${room.id}`, {
+                            state: { date, timeRange },
+                          })
+                        }
                         type="button"
                       >
                         Details
                       </button>
                       <button
                         className="btn-primary"
-                        onClick={() => navigate(`/app/rooms/${room.id}`)}
+                        onClick={() =>
+                          navigate(`/app/rooms/${room.id}`, {
+                            state: { date, timeRange },
+                          })
+                        }
                         type="button"
                       >
                         Book Now

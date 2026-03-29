@@ -1,27 +1,85 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { bookings, rooms } from "../../data/mockData";
+import { fairroomApi } from "../../api/fairroomApi";
+import type { BookingSummary, Reminder, Room } from "../../api/contracts";
 
-const CURRENT_USER_ID = "9b3f5d2e-4b8e-4a16-9e1f-2baf3a9e9d01";
-
-const hourLabel = (hour: number) => `${String(hour).padStart(2, "0")}:00`;
+const timeLabel = (value: string) =>
+  new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(value));
 
 function MyBookingsPage() {
-  const now = new Date();
+  const [activeBookings, setActiveBookings] = useState<BookingSummary[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [room, setRoom] = useState<Room | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const userBookings = bookings
-    .filter((b) => b.userId === CURRENT_USER_ID)
-    .sort((a, b) => {
-      const aDate = new Date(`${a.date}T${String(a.startHour).padStart(2, "0")}:00:00`).getTime();
-      const bDate = new Date(`${b.date}T${String(b.startHour).padStart(2, "0")}:00:00`).getTime();
-      return aDate - bDate;
-    });
+  useEffect(() => {
+    let isCancelled = false;
 
-  const upcoming = userBookings.find((b) => {
-    const bookingStart = new Date(
-      `${b.date}T${String(b.startHour).padStart(2, "0")}:00:00`
-    ).getTime();
-    return bookingStart > now.getTime();
-  });
+    const loadBookingData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [bookingsResponse, remindersResponse] = await Promise.all([
+          fairroomApi.getMyBookings("active"),
+          fairroomApi.getMyReminders(),
+        ]);
+
+        if (isCancelled) return;
+
+        const sortedBookings = [...bookingsResponse.items].sort(
+          (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+        );
+
+        setActiveBookings(sortedBookings);
+        setReminders(remindersResponse.items);
+
+        if (sortedBookings[0]) {
+          const roomResponse = await fairroomApi.getRoom(sortedBookings[0].roomId);
+          if (!isCancelled) {
+            setRoom(roomResponse);
+          }
+        }
+      } catch (loadError) {
+        if (isCancelled) return;
+
+        setError(loadError instanceof Error ? loadError.message : "Unable to load bookings.");
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadBookingData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const upcoming = useMemo(() => {
+    const now = Date.now();
+    return activeBookings.find((booking) => new Date(booking.startsAt).getTime() > now) ?? activeBookings[0];
+  }, [activeBookings]);
+
+  const relatedReminders = useMemo(
+    () => reminders.filter((reminder) => reminder.bookingId === upcoming?.id),
+    [reminders, upcoming?.id],
+  );
+
+  if (loading) {
+    return <section className="booking-reminder-page"><p>Loading bookings...</p></section>;
+  }
+
+  if (error) {
+    return <section className="booking-reminder-page"><p>{error}</p></section>;
+  }
 
   if (!upcoming) {
     return (
@@ -39,11 +97,8 @@ function MyBookingsPage() {
     );
   }
 
-  const room = rooms.find((r) => r.id === upcoming.roomId);
-  const bookingStart = new Date(
-    `${upcoming.date}T${String(upcoming.startHour).padStart(2, "0")}:00:00`
-  );
-  const minutesLeft = Math.max(0, Math.floor((bookingStart.getTime() - now.getTime()) / 60000));
+  const bookingStart = new Date(upcoming.startsAt);
+  const minutesLeft = Math.max(0, Math.floor((bookingStart.getTime() - Date.now()) / 60000));
 
   return (
     <section className="booking-reminder-page">
@@ -54,7 +109,7 @@ function MyBookingsPage() {
           </div>
           <h1>Booking Reminder</h1>
           <p>
-            Your session at {room?.name ?? "your room"} begins in <u>{minutesLeft} minutes</u>.
+            Your session at {room?.name ?? upcoming.roomName} begins in <u>{minutesLeft} minutes</u>.
           </p>
         </header>
 
@@ -76,7 +131,7 @@ function MyBookingsPage() {
             <div>
               <small>SCHEDULED TIME</small>
               <p>
-                {hourLabel(upcoming.startHour)} - {hourLabel(upcoming.endHour)} (Today)
+                {timeLabel(upcoming.startsAt)} - {timeLabel(upcoming.endsAt)}
               </p>
             </div>
           </div>
@@ -95,11 +150,11 @@ function MyBookingsPage() {
           <h4>NOTIFICATION HISTORY</h4>
 
           <div className="history-chips">
-            {upcoming.notifications.map((n, idx) => (
-              <div key={`${n.channel}-${idx}`} className="history-chip">
-                <span>{n.channel.toUpperCase()}</span>
-                <small>{n.time}</small>
-                <strong>{n.status === "delivered" ? "Delivered" : "Pending"}</strong>
+            {relatedReminders.map((reminder) => (
+              <div key={reminder.id} className="history-chip">
+                <span>{reminder.channel.toUpperCase()}</span>
+                <small>{timeLabel(reminder.scheduledFor)}</small>
+                <strong>{reminder.status === "delivered" ? "Delivered" : reminder.status === "scheduled" ? "Scheduled" : "Failed"}</strong>
               </div>
             ))}
           </div>

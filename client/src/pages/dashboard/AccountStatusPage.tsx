@@ -1,22 +1,88 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { accountActivities, users } from "../../data/mockData";
+import { fairroomApi } from "../../api/fairroomApi";
+import type { AccountActivityItem, AccountStatusResponse } from "../../api/contracts";
 
 function AccountStatusPage() {
-  const currentUser = users[0];
-  const strikeCount = currentUser?.strikes ?? 0;
+  const [accountStatus, setAccountStatus] = useState<AccountStatusResponse | null>(null);
+  const [activity, setActivity] = useState<AccountActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadAccountData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [statusResponse, activitiesResponse] = await Promise.all([
+          fairroomApi.getAccountStatus(),
+          fairroomApi.getAccountActivities(),
+        ]);
+
+        if (isCancelled) return;
+
+        setAccountStatus(statusResponse);
+        setActivity(activitiesResponse.items);
+      } catch (loadError) {
+        if (isCancelled) return;
+
+        setError(loadError instanceof Error ? loadError.message : "Unable to load account data.");
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadAccountData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const strikeCount = accountStatus?.activeStrikes ?? 0;
   const maxStrikes = 3;
 
-  const standingLabel =
-    strikeCount === 0 ? "Excellent Standing" : strikeCount === 1 ? "Good Standing" : "At Risk";
+  const { standingLabel, standingMessage } = useMemo(() => {
+    if (!accountStatus) {
+      return {
+        standingLabel: "Loading",
+        standingMessage: "Retrieving your account standing.",
+      };
+    }
 
-  const standingMessage =
-    strikeCount === 0
-      ? "Perfect record. Keep it up!"
-      : strikeCount === 1
-        ? "Your account is in great shape!"
-        : "Warning: You are close to booking restrictions.";
+    if (accountStatus.accountState === "restricted") {
+      return {
+        standingLabel: "Restricted",
+        standingMessage: "Booking is currently restricted until your active strikes are reduced.",
+      };
+    }
 
-  const activity = accountActivities.filter((a) => a.userId === (currentUser?.id ?? ""));
+    if (accountStatus.accountState === "warned") {
+      return {
+        standingLabel: "Warning",
+        standingMessage: "You are one strike away from booking restrictions.",
+      };
+    }
+
+    return {
+      standingLabel: strikeCount === 0 ? "Excellent Standing" : "Good Standing",
+      standingMessage:
+        strikeCount === 0 ? "Perfect record. Keep it up!" : "Your account is still eligible to book.",
+    };
+  }, [accountStatus, strikeCount]);
+
+  if (loading) {
+    return <section className="account-health-page"><p>Loading account status...</p></section>;
+  }
+
+  if (error) {
+    return <section className="account-health-page"><p>{error}</p></section>;
+  }
 
   return (
     <section className="account-health-page">
@@ -40,7 +106,10 @@ function AccountStatusPage() {
             Continue following the fair use policy to maintain access to all campus study rooms and
             facilities.
           </p>
-          <strong>STRIKE COUNT: {strikeCount} / {maxStrikes}</strong>
+          <strong>
+            ACTIVE STRIKES: {strikeCount} / {maxStrikes} •{" "}
+            {accountStatus?.bookingEligible ? "BOOKING ENABLED" : "BOOKING BLOCKED"}
+          </strong>
         </div>
       </article>
 
@@ -82,7 +151,7 @@ function AccountStatusPage() {
                 <p>{item.description}</p>
               </div>
               <div className="activity-meta">
-                <small>{item.dateLabel}</small>
+                <small>{new Date(item.occurredAt).toLocaleDateString()}</small>
                 <span className={`status-tag ${item.status}`}>
                   {item.status === "incident" ? "Incident" : "Completed"}
                 </span>
