@@ -12,7 +12,7 @@ impl MigrationTrait for Migration {
             .create_type(
                 Type::create()
                     .as_enum(Role::RoleEnum)
-                    .values([Role::Admin, Role::User])
+                    .values([Role::Admin, Role::Student])
                     .to_owned(),
             )
             .await?;
@@ -24,13 +24,13 @@ impl MigrationTrait for Migration {
                     .table(User::Table)
                     .if_not_exists()
                     .col(pk_uuid(User::Id).auto_increment().not_null().primary_key())
-                    .col(string(User::Name).not_null())
+                    .col(string(User::FullName).not_null())
                     .col(string(User::Email).not_null().unique_key())
                     .col(string(User::Password).not_null().unique_key())
                     .col(integer(User::Strikes).not_null())
                     .col(
                         ColumnDef::new(User::Role)
-                            .enumeration(Role::RoleEnum, [Role::Admin, Role::User])
+                            .enumeration(Role::RoleEnum, [Role::Admin, Role::Student])
                             .not_null(),
                     )
                     .col(integer(User::Bookings).not_null())
@@ -55,7 +55,7 @@ impl MigrationTrait for Migration {
 enum User {
     Table,
     Id,
-    Name,
+    FullName,
     Email,
     Password,
     Strikes,
@@ -68,5 +68,5 @@ enum User {
 enum Role {
     RoleEnum, // name of the enum type
     Admin,
-    User,
+    Student,
 }
