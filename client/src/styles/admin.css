@@ -40,7 +40,8 @@
 }
 .admin-status-pill.active { background: #ecf8f0; color: #267647; }
 .admin-status-pill.cancelled { background: #eef1f6; color: #606776; }
-.admin-status-pill.noshow { background: #ffeceb; color: #d04545; }
+.admin-status-pill.completed { background: #eef4ff; color: #3558a8; }
+.admin-status-pill.no_show { background: #ffeceb; color: #d04545; }
 
 .mini-btn {
   border: 1px solid #dfe3ec; background: #fff; border-radius: 8px; padding: 6px 10px; cursor: pointer;

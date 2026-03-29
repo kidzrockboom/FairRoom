@@ -1,11 +1,13 @@
+import type { AccountState, BookingStatus } from "../api/contracts";
+
 /* =========================
    Admin Overview
 ========================= */
-export type AdminBookingStatus = "Active" | "Cancelled" | "No-Show";
+export type AdminBookingStatus = BookingStatus;
 
 export type AdminBookingRow = {
   id: string;
-  userName: string;
+  userFullName: string;
   userCode: string;
   avatarUrl: string;
   roomName: string;
@@ -25,91 +27,91 @@ export const adminOverviewHeader = {
 export const adminOverviewRows: AdminBookingRow[] = [
   {
     id: "bk-001",
-    userName: "Sarah Jenkins",
+    userFullName: "Sarah Jenkins",
     userCode: "S202301",
     avatarUrl: "https://i.pravatar.cc/40?img=5",
     roomName: "Library Room 402",
     roomCode: "RM-8821",
     dateLabel: "Oct 24, 2023",
     timeLabel: "10:00 AM - 12:00 PM",
-    status: "Active",
+    status: "active",
   },
   {
     id: "bk-002",
-    userName: "Michael Chen",
+    userFullName: "Michael Chen",
     userCode: "S202305",
     avatarUrl: "https://i.pravatar.cc/40?img=15",
     roomName: "Science Hub B2",
     roomCode: "RM-8822",
     dateLabel: "Oct 24, 2023",
     timeLabel: "01:00 PM - 03:00 PM",
-    status: "Cancelled",
+    status: "cancelled",
   },
   {
     id: "bk-003",
-    userName: "Aria Rodriguez",
+    userFullName: "Aria Rodriguez",
     userCode: "S202312",
     avatarUrl: "https://i.pravatar.cc/40?img=32",
     roomName: "Study Pod 09",
     roomCode: "RM-8823",
     dateLabel: "Oct 23, 2023",
     timeLabel: "09:00 AM - 10:30 AM",
-    status: "No-Show",
+    status: "no_show",
   },
   {
     id: "bk-004",
-    userName: "James Wilson",
+    userFullName: "James Wilson",
     userCode: "S202309",
     avatarUrl: "https://i.pravatar.cc/40?img=52",
     roomName: "Collaboration Suite A",
     roomCode: "RM-8824",
     dateLabel: "Oct 23, 2023",
     timeLabel: "02:00 PM - 05:00 PM",
-    status: "Active",
+    status: "active",
   },
   {
     id: "bk-005",
-    userName: "Elena Gilbert",
+    userFullName: "Elena Gilbert",
     userCode: "S202318",
     avatarUrl: "https://i.pravatar.cc/40?img=45",
     roomName: "Library Room 201",
     roomCode: "RM-8825",
     dateLabel: "Oct 22, 2023",
     timeLabel: "11:00 AM - 12:30 PM",
-    status: "Active",
+    status: "active",
   },
   {
     id: "bk-006",
-    userName: "Noah Patel",
+    userFullName: "Noah Patel",
     userCode: "S202324",
     avatarUrl: "https://i.pravatar.cc/40?img=22",
     roomName: "Lab 210",
     roomCode: "RM-8826",
     dateLabel: "Oct 22, 2023",
     timeLabel: "03:00 PM - 04:30 PM",
-    status: "Cancelled",
+    status: "cancelled",
   },
   {
     id: "bk-007",
-    userName: "Lina Park",
+    userFullName: "Lina Park",
     userCode: "S202331",
     avatarUrl: "https://i.pravatar.cc/40?img=25",
     roomName: "Quiet Pod 04",
     roomCode: "RM-8827",
     dateLabel: "Oct 21, 2023",
     timeLabel: "08:00 AM - 09:00 AM",
-    status: "No-Show",
+    status: "no_show",
   },
   {
     id: "bk-008",
-    userName: "Omar Khaled",
+    userFullName: "Omar Khaled",
     userCode: "S202337",
     avatarUrl: "https://i.pravatar.cc/40?img=29",
     roomName: "Meeting Room 09",
     roomCode: "RM-8828",
     dateLabel: "Oct 21, 2023",
     timeLabel: "04:00 PM - 06:00 PM",
-    status: "Active",
+    status: "active",
   },
 ];
 
@@ -156,12 +158,12 @@ export type StrikeHistoryItem = {
 
 export type DirectoryStudent = {
   id: string;
-  name: string;
+  fullName: string;
   studentCode: string;
   program: string;
   avatarUrl: string;
   strikes: number;
-  accountState: "good" | "warned" | "restricted";
+  accountState: AccountState;
   lastUpdate: string;
   strikeHistory: StrikeHistoryItem[];
 };
@@ -169,7 +171,7 @@ export type DirectoryStudent = {
 export const adminStudents: DirectoryStudent[] = [
   {
     id: "st-1",
-    name: "Alex Thompson",
+    fullName: "Alex Thompson",
     studentCode: "2023-0492",
     program: "Computer Science",
     avatarUrl: "https://i.pravatar.cc/64?img=12",
@@ -182,7 +184,7 @@ export const adminStudents: DirectoryStudent[] = [
   },
   {
     id: "st-2",
-    name: "Sarah Jenkins",
+    fullName: "Sarah Jenkins",
     studentCode: "2023-0112",
     program: "Mechanical Engineering",
     avatarUrl: "https://i.pravatar.cc/64?img=5",
@@ -196,7 +198,7 @@ export const adminStudents: DirectoryStudent[] = [
   },
   {
     id: "st-3",
-    name: "Michael Chen",
+    fullName: "Michael Chen",
     studentCode: "2022-0943",
     program: "Civil Engineering",
     avatarUrl: "https://i.pravatar.cc/64?img=15",
@@ -210,7 +212,7 @@ export const adminStudents: DirectoryStudent[] = [
   },
   {
     id: "st-4",
-    name: "Emily Rodriguez",
+    fullName: "Emily Rodriguez",
     studentCode: "2023-0881",
     program: "Architecture",
     avatarUrl: "https://i.pravatar.cc/64?img=47",
@@ -223,7 +225,7 @@ export const adminStudents: DirectoryStudent[] = [
   },
   {
     id: "st-5",
-    name: "David Kim",
+    fullName: "David Kim",
     studentCode: "2022-0322",
     program: "Business Administration",
     avatarUrl: "https://i.pravatar.cc/64?img=60",

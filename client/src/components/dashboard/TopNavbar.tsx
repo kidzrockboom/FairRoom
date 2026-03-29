@@ -2,7 +2,7 @@ import { currentUser } from "../../data/sessionMock";
 
 function TopNavbar() {
   const roleLabel = currentUser?.role ? currentUser.role.toUpperCase() : "STUDENT";
-  const displayName = currentUser?.name ?? "User";
+  const displayName = currentUser?.fullName ?? "User";
   const profileId = currentUser?.id ? currentUser.id.slice(0, 8) : "N/A";
 
   return (

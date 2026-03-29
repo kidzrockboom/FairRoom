@@ -1,17 +1,21 @@
 import axios from "axios";
-import { accountActivities, bookings, rooms, users } from "../data/mockData";
+import {
+  accountActivities,
+  bookings,
+  reminders,
+  roomAvailabilityTemplates,
+  rooms,
+  users,
+} from "../data/mockData";
 import type {
-  AccountActivityItem,
   AccountActivityListResponse,
   AccountState,
   AccountStatusResponse,
   AvailabilityWindow,
   BookingListResponse,
   BookingScope,
-  BookingStatus,
   BookingSummary,
   CreateBookingRequest,
-  Reminder,
   ReminderListResponse,
   ReminderStatus,
   Room,
@@ -42,96 +46,11 @@ const authHeaders = () => {
   }
 };
 
-const roomApiId = (id: number) => `room_${String(id).padStart(2, "0")}`;
-const bookingApiId = (id: number) => `bk_${id}`;
-
-const toIsoFromHour = (date: string, hour: number) =>
-  new Date(`${date}T${String(hour).padStart(2, "0")}:00:00`).toISOString();
-
 const deriveAccountState = (activeStrikes: number): AccountState => {
   if (activeStrikes >= 3) return "restricted";
   if (activeStrikes === 2) return "warned";
   return "good";
 };
-
-const mapRoomSearchItem = (
-  room: (typeof rooms)[number],
-  requestedRange: { start: number; end: number } | null | undefined,
-): RoomSearchItem => {
-  const isAvailableForRequestedRange =
-    requestedRange == null
-      ? true
-      : room.slots
-          .filter((slot) => slot.hour >= requestedRange.start && slot.hour < requestedRange.end)
-          .every((slot) => slot.available);
-
-  return {
-    id: roomApiId(room.id),
-    roomCode: room.roomCode,
-    name: room.name,
-    location: room.location,
-    capacity: room.capacity,
-    isAvailableForRequestedRange,
-  };
-};
-
-const mapRoom = (room: (typeof rooms)[number]): Room => ({
-  id: roomApiId(room.id),
-  roomCode: room.roomCode,
-  name: room.name,
-  location: room.location,
-  capacity: room.capacity,
-  isActive: true,
-  createdAt: "2026-03-01T08:00:00Z",
-});
-
-const mapBookingStatus = (date: string, endHour: number): BookingStatus => {
-  const now = Date.now();
-  const endsAt = new Date(`${date}T${String(endHour).padStart(2, "0")}:00:00`).getTime();
-  return endsAt < now ? "completed" : "active";
-};
-
-const mapBookingSummary = (booking: (typeof bookings)[number]): BookingSummary => {
-  const room = rooms.find((candidate) => candidate.id === booking.roomId);
-
-  return {
-    id: bookingApiId(booking.id),
-    roomId: roomApiId(booking.roomId),
-    roomCode: room?.roomCode ?? "UNKNOWN",
-    roomName: room?.name ?? "Unknown Room",
-    startsAt: toIsoFromHour(booking.date, booking.startHour),
-    endsAt: toIsoFromHour(booking.date, booking.endHour),
-    status: mapBookingStatus(booking.date, booking.endHour),
-    checkedIn: booking.checkedIn,
-    createdAt: "2026-03-29T10:05:00Z",
-    updatedAt: "2026-03-29T10:05:00Z",
-  };
-};
-
-const mapReminderStatus = (status: "delivered" | "pending"): ReminderStatus =>
-  status === "pending" ? "scheduled" : "delivered";
-
-const mapReminder = (booking: (typeof bookings)[number], index: number, notification: (typeof bookings)[number]["notifications"][number]): Reminder => ({
-  id: `rem_${booking.id}_${notification.channel}_${index}`,
-  bookingId: bookingApiId(booking.id),
-  channel: notification.channel,
-  scheduledFor: new Date(`${booking.date}T${notification.time}:00`).toISOString(),
-  sentAt: notification.status === "delivered" ? new Date(`${booking.date}T${notification.time}:00`).toISOString() : null,
-  status: mapReminderStatus(notification.status),
-  failureReason: null,
-  createdAt: "2026-03-29T10:06:00Z",
-});
-
-const mapAccountActivityItem = (item: (typeof accountActivities)[number]): AccountActivityItem => ({
-  id: `act_${item.id}`,
-  type: item.status === "incident" ? "strike_recorded" : "booking_created",
-  title: item.title,
-  description: item.description,
-  occurredAt: new Date(item.dateLabel).toISOString(),
-  status: item.status,
-  sourceEntityType: item.status === "incident" ? "strike" : "booking",
-  sourceEntityId: item.status === "incident" ? `str_${item.id}` : bookingApiId(item.id),
-});
 
 const parseRequestedRange = (startsAt?: string, endsAt?: string) => {
   if (!startsAt || !endsAt) return null;
@@ -140,20 +59,45 @@ const parseRequestedRange = (startsAt?: string, endsAt?: string) => {
   return { start, end };
 };
 
-const deriveAvailabilityWindows = (
+const mapRoomSearchItem = (
   room: (typeof rooms)[number],
+  requestedRange: { start: number; end: number } | null | undefined,
+): RoomSearchItem => {
+  const availability = roomAvailabilityTemplates[room.id] ?? [];
+  const isAvailableForRequestedRange =
+    requestedRange == null
+      ? true
+      : availability
+          .filter((slot) => slot.hour >= requestedRange.start && slot.hour < requestedRange.end)
+          .every((slot) => slot.status === "available");
+
+  return {
+    id: room.id,
+    roomCode: room.roomCode,
+    name: room.name,
+    location: room.location,
+    capacity: room.capacity,
+    isAvailableForRequestedRange,
+  };
+};
+
+const deriveAvailabilityWindows = (
+  roomId: string,
   startsAt: string,
   endsAt: string,
 ): AvailabilityWindow[] => {
   const range = parseRequestedRange(startsAt, endsAt);
   if (range == null) return [];
 
-  return room.slots
+  const availability = roomAvailabilityTemplates[roomId] ?? [];
+  const day = startsAt.slice(0, 10);
+
+  return availability
     .filter((slot) => slot.hour >= range.start && slot.hour < range.end)
     .map((slot) => ({
-      startsAt: toIsoFromHour(startsAt.slice(0, 10), slot.hour),
-      endsAt: toIsoFromHour(startsAt.slice(0, 10), slot.hour + 1),
-      status: slot.available ? "available" : "booked",
+      startsAt: new Date(`${day}T${String(slot.hour).padStart(2, "0")}:00:00`).toISOString(),
+      endsAt: new Date(`${day}T${String(slot.hour + 1).padStart(2, "0")}:00:00`).toISOString(),
+      status: slot.status,
     }));
 };
 
@@ -178,13 +122,12 @@ export const fairroomApi = {
       },
       () => {
         const user = users[0];
-        const activeStrikes = user?.strikes ?? 0;
-        const accountState = deriveAccountState(activeStrikes);
+        const activeStrikes = user?.activeStrikes ?? 0;
 
         return {
           activeStrikes,
           bookingEligible: activeStrikes < 3,
-          accountState,
+          accountState: deriveAccountState(activeStrikes),
         };
       },
     );
@@ -198,11 +141,7 @@ export const fairroomApi = {
         });
         return data;
       },
-      () => ({
-        items: accountActivities
-          .filter((item) => item.userId === CURRENT_USER_ID)
-          .map(mapAccountActivityItem),
-      }),
+      () => ({ items: accountActivities }),
     );
   },
 
@@ -219,7 +158,6 @@ export const fairroomApi = {
         const now = Date.now();
         const items = bookings
           .filter((booking) => booking.userId === CURRENT_USER_ID)
-          .map(mapBookingSummary)
           .filter((booking) => {
             if (scope === "all") return true;
             const endsAt = new Date(booking.endsAt).getTime();
@@ -246,9 +184,11 @@ export const fairroomApi = {
         return data;
       },
       () => {
-        const items = bookings
-          .filter((booking) => booking.userId === CURRENT_USER_ID)
-          .flatMap((booking) => booking.notifications.map((notification, index) => mapReminder(booking, index, notification)))
+        const visibleBookingIds = new Set(
+          bookings.filter((booking) => booking.userId === CURRENT_USER_ID).map((booking) => booking.id),
+        );
+        const items = reminders
+          .filter((reminder) => visibleBookingIds.has(reminder.bookingId))
           .filter((reminder) => (status ? reminder.status === status : true));
 
         return {
@@ -270,6 +210,7 @@ export const fairroomApi = {
       () => {
         const requestedRange = parseRequestedRange(params.startsAt, params.endsAt);
         let items = rooms
+          .filter((room) => room.isActive)
           .filter((room) => {
             const matchSearch = params.search
               ? `${room.name} ${room.roomCode}`.toLowerCase().includes(params.search.toLowerCase())
@@ -304,9 +245,9 @@ export const fairroomApi = {
         return data;
       },
       () => {
-        const room = rooms.find((candidate) => roomApiId(candidate.id) === roomId);
+        const room = rooms.find((candidate) => candidate.id === roomId);
         if (!room) throw new Error("Room not found");
-        return mapRoom(room);
+        return room;
       },
     );
   },
@@ -320,14 +261,14 @@ export const fairroomApi = {
         return data;
       },
       () => {
-        const room = rooms.find((candidate) => roomApiId(candidate.id) === roomId);
+        const room = rooms.find((candidate) => candidate.id === roomId);
         if (!room) throw new Error("Room not found");
 
         return {
           roomId,
           requestedStartsAt: startsAt,
           requestedEndsAt: endsAt,
-          windows: deriveAvailabilityWindows(room, startsAt, endsAt),
+          windows: deriveAvailabilityWindows(room.id, startsAt, endsAt),
         };
       },
     );
@@ -344,8 +285,8 @@ export const fairroomApi = {
       () => ({
         id: `bk_mock_${Date.now()}`,
         roomId: payload.roomId,
-        roomCode: rooms.find((room) => roomApiId(room.id) === payload.roomId)?.roomCode ?? "UNKNOWN",
-        roomName: rooms.find((room) => roomApiId(room.id) === payload.roomId)?.name ?? "Unknown Room",
+        roomCode: rooms.find((room) => room.id === payload.roomId)?.roomCode ?? "UNKNOWN",
+        roomName: rooms.find((room) => room.id === payload.roomId)?.name ?? "Unknown Room",
         startsAt: payload.startsAt,
         endsAt: payload.endsAt,
         status: "active",

@@ -1,85 +1,148 @@
-import type { Booking, Room, User } from "../types/types";
+import type {
+  AccountActivityItem,
+  BookingSummary,
+  Reminder,
+  Room,
+  UserProfile,
+} from "../api/contracts";
 
-export type AccountActivity = {
-  id: number;
-  userId: string; // UUID
-  title: string;
-  description: string;
-  dateLabel: string;
-  status: "incident" | "completed";
+export type MockUser = UserProfile & {
+  activeStrikes: number;
 };
 
-const createSlots = (reservedHours: number[]): { hour: number; available: boolean }[] =>
+export type MockBookingSummary = BookingSummary & {
+  userId: string;
+};
+
+export type MockAvailabilityTemplate = {
+  hour: number;
+  status: "available" | "booked";
+};
+
+const CURRENT_USER_ID = "9b3f5d2e-4b8e-4a16-9e1f-2baf3a9e9d01";
+
+const addHours = (base: Date, hours: number) => new Date(base.getTime() + hours * 60 * 60 * 1000);
+
+const createAvailabilityTemplate = (bookedHours: number[]): MockAvailabilityTemplate[] =>
   Array.from({ length: 24 }, (_, hour) => ({
     hour,
-    available: !reservedHours.includes(hour),
+    status: bookedHours.includes(hour) ? "booked" : "available",
   }));
+
+const bookingStart = (() => {
+  const value = addHours(new Date(), 1);
+  value.setMinutes(0, 0, 0);
+  return value;
+})();
+
+const bookingEnd = addHours(bookingStart, 2);
+const createdAt = "2026-03-01T08:00:00Z";
 
 export const rooms: Room[] = [
   {
-    id: 1,
+    id: "room_01",
+    roomCode: "RM-204-CL",
     name: "Collaboration Lab 204",
     capacity: 6,
     location: "Central Library, Wing B, Level 2",
-    roomCode: "RM-204-CL",
-    slots: createSlots([9, 12, 13, 18]),
+    isActive: true,
+    createdAt,
   },
   {
-    id: 2,
+    id: "room_02",
+    roomCode: "RM-A-MH",
     name: "Seminar Room A",
     capacity: 20,
     location: "Level 1, Main Hall",
-    roomCode: "RM-A-MH",
-    slots: createSlots([10, 11, 14, 15]),
+    isActive: true,
+    createdAt,
   },
   {
-    id: 3,
+    id: "room_03",
+    roomCode: "QP-04",
     name: "Quiet Pod 04",
     capacity: 1,
     location: "Floor 3, Central Library",
-    roomCode: "QP-04",
-    slots: createSlots([8, 16, 17]),
+    isActive: true,
+    createdAt,
   },
 ];
 
-export const users: User[] = [
+export const roomAvailabilityTemplates: Record<string, MockAvailabilityTemplate[]> = {
+  room_01: createAvailabilityTemplate([9, 12, 13, 18]),
+  room_02: createAvailabilityTemplate([10, 11, 14, 15]),
+  room_03: createAvailabilityTemplate([8, 16, 17]),
+};
+
+export const users: MockUser[] = [
   {
-    id: "9b3f5d2e-4b8e-4a16-9e1f-2baf3a9e9d01",
-    name: "Alice Johnson",
+    id: CURRENT_USER_ID,
+    fullName: "Alice Johnson",
     email: "alice@example.com",
-    password: "hashed_password_placeholder",
-    strikes: 1,
     role: "admin",
-    created_at: "2026-01-10T09:30:00Z",
+    createdAt: "2026-01-10T09:30:00Z",
+    activeStrikes: 1,
   },
 ];
 
-const today = new Date().toISOString().split("T")[0];
-
-export const bookings: Booking[] = [
+export const bookings: MockBookingSummary[] = [
   {
-    id: 1001,
-    roomId: 3,
-    userId: "9b3f5d2e-4b8e-4a16-9e1f-2baf3a9e9d01",
-    date: today,
-    startHour: 14,
-    endHour: 16,
+    id: "bk_1001",
+    roomId: "room_03",
+    roomCode: "QP-04",
+    roomName: "Quiet Pod 04",
+    startsAt: bookingStart.toISOString(),
+    endsAt: bookingEnd.toISOString(),
+    status: "active",
     checkedIn: false,
-    notifications: [
-      { channel: "email", time: "13:00", status: "delivered" },
-      { channel: "push", time: "13:30", status: "delivered" },
-      { channel: "sms", time: "13:35", status: "pending" },
-    ],
+    createdAt: "2026-03-29T10:05:00Z",
+    updatedAt: "2026-03-29T10:05:00Z",
+    userId: CURRENT_USER_ID,
   },
 ];
 
-export const accountActivities: AccountActivity[] = [
+export const reminders: Reminder[] = [
   {
-    id: 1,
-    userId: "9b3f5d2e-4b8e-4a16-9e1f-2baf3a9e9d01",
+    id: "rem_bk_1001_email_0",
+    bookingId: "bk_1001",
+    channel: "email",
+    scheduledFor: addHours(bookingStart, -1).toISOString(),
+    sentAt: addHours(bookingStart, -1).toISOString(),
+    status: "delivered",
+    failureReason: null,
+    createdAt: "2026-03-29T10:06:00Z",
+  },
+  {
+    id: "rem_bk_1001_push_1",
+    bookingId: "bk_1001",
+    channel: "push",
+    scheduledFor: addHours(bookingStart, -0.5).toISOString(),
+    sentAt: addHours(bookingStart, -0.5).toISOString(),
+    status: "delivered",
+    failureReason: null,
+    createdAt: "2026-03-29T10:06:00Z",
+  },
+  {
+    id: "rem_bk_1001_sms_2",
+    bookingId: "bk_1001",
+    channel: "sms",
+    scheduledFor: addHours(bookingStart, -(25 / 60)).toISOString(),
+    sentAt: null,
+    status: "scheduled",
+    failureReason: null,
+    createdAt: "2026-03-29T10:06:00Z",
+  },
+];
+
+export const accountActivities: AccountActivityItem[] = [
+  {
+    id: "act_1",
+    type: "strike_recorded",
     title: "Strike Added",
     description: "No-show for Room 402 (14:00 - 15:30)",
-    dateLabel: "Oct 24, 2023",
+    occurredAt: "2026-03-24T14:00:00Z",
     status: "incident",
+    sourceEntityType: "strike",
+    sourceEntityId: "str_1",
   },
 ];

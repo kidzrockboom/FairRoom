@@ -11,7 +11,7 @@ function AdminStrikesPage() {
   const filtered = useMemo(() => {
     return adminStudents.filter((s) => {
       const q = query.toLowerCase();
-      return s.name.toLowerCase().includes(q) || s.studentCode.toLowerCase().includes(q);
+      return s.fullName.toLowerCase().includes(q) || s.studentCode.toLowerCase().includes(q);
     });
   }, [query]);
 
@@ -45,9 +45,9 @@ function AdminStrikesPage() {
                 setReason("");
               }}
             >
-              <img src={student.avatarUrl} alt={student.name} />
+              <img src={student.avatarUrl} alt={student.fullName} />
               <div>
-                <strong>{student.name}</strong>
+                <strong>{student.fullName}</strong>
                 <small>ID: {student.studentCode}</small>
               </div>
               <span className={`strike-pill strike-${Math.min(student.strikes, 3)}`}>
@@ -62,9 +62,9 @@ function AdminStrikesPage() {
         <div className="strike-content">
           <header className="student-header">
             <div className="student-header-left">
-              <img src={selectedStudent.avatarUrl} alt={selectedStudent.name} />
+              <img src={selectedStudent.avatarUrl} alt={selectedStudent.fullName} />
               <div>
-                <h1>{selectedStudent.name}</h1>
+                <h1>{selectedStudent.fullName}</h1>
                 <p>
                   {selectedStudent.studentCode} • {selectedStudent.program}
                 </p>

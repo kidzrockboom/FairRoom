@@ -9,17 +9,30 @@ import {
 } from "../../../data/adminMockData";
 import "../../../styles/admin.css";
 
+const formatBookingStatus = (status: AdminBookingStatus) => {
+  switch (status) {
+    case "active":
+      return "Active";
+    case "cancelled":
+      return "Cancelled";
+    case "completed":
+      return "Completed";
+    case "no_show":
+      return "No-Show";
+  }
+};
+
 function AdminOverviewPage() {
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"All" | AdminBookingStatus>("All");
+  const [statusFilter, setStatusFilter] = useState<"all" | AdminBookingStatus>("all");
 
   const filteredRows = useMemo(() => {
     return adminOverviewRows.filter((row) => {
       const matchQuery =
-        row.userName.toLowerCase().includes(query.toLowerCase()) ||
+        row.userFullName.toLowerCase().includes(query.toLowerCase()) ||
         row.roomName.toLowerCase().includes(query.toLowerCase());
 
-      const matchStatus = statusFilter === "All" ? true : row.status === statusFilter;
+      const matchStatus = statusFilter === "all" ? true : row.status === statusFilter;
       return matchQuery && matchStatus;
     });
   }, [query, statusFilter]);
@@ -51,19 +64,20 @@ function AdminOverviewPage() {
         <input placeholder="Date" />
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as "All" | AdminBookingStatus)}
+          onChange={(e) => setStatusFilter(e.target.value as "all" | AdminBookingStatus)}
         >
-          <option value="All">Status: All</option>
-          <option value="Active">Active</option>
-          <option value="Cancelled">Cancelled</option>
-          <option value="No-Show">No-Show</option>
+          <option value="all">Status: All</option>
+          <option value="active">Active</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="completed">Completed</option>
+          <option value="no_show">No-Show</option>
         </select>
         <button
           type="button"
           className="admin-reset-btn"
           onClick={() => {
             setQuery("");
-            setStatusFilter("All");
+            setStatusFilter("all");
           }}
         >
           Reset Filters
@@ -83,9 +97,9 @@ function AdminOverviewPage() {
           {filteredRows.map((row) => (
             <div className="admin-table-row" key={row.id}>
               <div className="user-cell">
-                <img src={row.avatarUrl} alt={row.userName} />
+                <img src={row.avatarUrl} alt={row.userFullName} />
                 <div>
-                  <strong>{row.userName}</strong>
+                  <strong>{row.userFullName}</strong>
                   <small>{row.userCode}</small>
                 </div>
               </div>
@@ -101,8 +115,8 @@ function AdminOverviewPage() {
               </div>
 
               <div>
-                <span className={`admin-status-pill ${row.status.toLowerCase().replace("-", "")}`}>
-                  {row.status}
+                <span className={`admin-status-pill ${row.status}`}>
+                  {formatBookingStatus(row.status)}
                 </span>
               </div>
 
