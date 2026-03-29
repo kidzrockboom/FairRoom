@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FilterPanel from "../../components/dashboard/FilterPanel";
 import { rooms } from "../../data/mockData";
@@ -21,7 +21,18 @@ function SearchRoomsPage() {
   const [page, setPage] = useState(1);
 
   const toggleCapacity = (value: number) => {
+    setPage(1);
     setMinCapacity((prev) => (prev === value ? null : value));
+  };
+
+  const handleDateChange = (value: string) => {
+    setPage(1);
+    setDate(value);
+  };
+
+  const handleTimeRangeChange = (range: { start: number; end: number } | null) => {
+    setPage(1);
+    setTimeRange(range);
   };
 
   const clearAll = () => {
@@ -55,10 +66,6 @@ function SearchRoomsPage() {
     return result;
   }, [search, minCapacity, timeRange, sortBy]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [search, date, minCapacity, timeRange, sortBy]);
-
   const totalPages = Math.max(1, Math.ceil(filteredRooms.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -76,11 +83,11 @@ function SearchRoomsPage() {
       <div className="content-grid">
         <FilterPanel
           date={date}
-          onDateChange={setDate}
+          onDateChange={handleDateChange}
           minCapacity={minCapacity}
           onMinCapacityChange={toggleCapacity}
           timeRange={timeRange}
-          onTimeRangeChange={setTimeRange}
+          onTimeRangeChange={handleTimeRangeChange}
           onReset={clearAll}
         />
 
@@ -97,7 +104,10 @@ function SearchRoomsPage() {
               className="search-input"
               placeholder="Search room name or ID..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setPage(1);
+                setSearch(e.target.value);
+              }}
             />
           </div>
 
@@ -131,7 +141,13 @@ function SearchRoomsPage() {
             <h2>Showing {filteredRooms.length} Rooms</h2>
             <div className="sort-wrap">
               <label>Sort by:</label>
-              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)}>
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setPage(1);
+                  setSortBy(e.target.value as SortOption);
+                }}
+              >
                 <option value="capacity-asc">Capacity (Low to High)</option>
                 <option value="capacity-desc">Capacity (High to Low)</option>
                 <option value="name-asc">Name (A to Z)</option>

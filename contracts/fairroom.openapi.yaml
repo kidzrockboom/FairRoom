@@ -1,0 +1,1291 @@
+openapi: 3.0.3
+info:
+  title: FairRoom API
+  version: 0.1.0
+  description: >
+    Generated implementation artifact from the approved Notion API contract.
+    The Notion deliverable remains the canonical planning source.
+servers:
+  - url: https://oasd5f85395cf35.free.beeceptor.com
+    description: Hosted Beeceptor mock API
+  - url: http://localhost:8080
+    description: Local backend
+tags:
+  - name: Auth
+  - name: Account
+  - name: Rooms
+  - name: Bookings
+  - name: Admin
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Page:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      in: query
+      name: pageSize
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    StartsAt:
+      in: query
+      name: startsAt
+      schema:
+        type: string
+        format: date-time
+    EndsAt:
+      in: query
+      name: endsAt
+      schema:
+        type: string
+        format: date-time
+  schemas:
+    UserRole:
+      type: string
+      enum: [student, admin]
+    BookingStatus:
+      type: string
+      enum: [active, cancelled, completed, no_show]
+    ReminderStatus:
+      type: string
+      enum: [scheduled, delivered, failed]
+    ReminderChannel:
+      type: string
+      enum: [email, push, sms]
+    AccountState:
+      type: string
+      enum: [good, warned, restricted]
+    RegisterRequest:
+      type: object
+      required: [fullName, email, password]
+      properties:
+        fullName:
+          type: string
+          example: Ada Lovelace
+        email:
+          type: string
+          format: email
+          example: ada@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: ada@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+    UserProfile:
+      type: object
+      required: [id, fullName, email, role, createdAt]
+      properties:
+        id:
+          type: string
+          example: usr_01JY7J7M0N1A2B3C4D5E6F7G8H
+        fullName:
+          type: string
+          example: Ada Lovelace
+        email:
+          type: string
+          format: email
+          example: ada@example.com
+        role:
+          $ref: '#/components/schemas/UserRole'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-03-29T09:00:00Z'
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          example: jwt-token-placeholder
+        user:
+          $ref: '#/components/schemas/UserProfile'
+    AccountStatusResponse:
+      type: object
+      required: [activeStrikes, bookingEligible, accountState]
+      properties:
+        activeStrikes:
+          type: integer
+          minimum: 0
+          example: 1
+        bookingEligible:
+          type: boolean
+          example: true
+        accountState:
+          $ref: '#/components/schemas/AccountState'
+    AccountActivityItem:
+      type: object
+      required:
+        [id, type, title, description, occurredAt, status, sourceEntityType, sourceEntityId]
+      properties:
+        id:
+          type: string
+          example: act_01JY7K4S5T6U7V8W9X0Y1Z2A3B
+        type:
+          type: string
+          example: booking_created
+        title:
+          type: string
+          example: Booking confirmed
+        description:
+          type: string
+          example: Room B201 booked for 2026-04-02 14:00 to 16:00.
+        occurredAt:
+          type: string
+          format: date-time
+          example: '2026-03-29T10:05:00Z'
+        status:
+          type: string
+          example: completed
+        sourceEntityType:
+          type: string
+          example: booking
+        sourceEntityId:
+          type: string
+          example: bk_01JY7K1R2S3T4U5V6W7X8Y9Z0A
+    AccountActivityListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountActivityItem'
+    BookingSummary:
+      type: object
+      required:
+        [id, roomId, roomCode, roomName, startsAt, endsAt, status, checkedIn, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: bk_01JY7K1R2S3T4U5V6W7X8Y9Z0A
+        roomId:
+          type: string
+          example: room_01
+        roomCode:
+          type: string
+          example: B201
+        roomName:
+          type: string
+          example: Library Study Room B201
+        startsAt:
+          type: string
+          format: date-time
+          example: '2026-04-02T14:00:00Z'
+        endsAt:
+          type: string
+          format: date-time
+          example: '2026-04-02T16:00:00Z'
+        status:
+          $ref: '#/components/schemas/BookingStatus'
+        checkedIn:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-03-29T10:05:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-03-29T10:05:00Z'
+    BookingListResponse:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingSummary'
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 1
+    Reminder:
+      type: object
+      required: [id, bookingId, channel, scheduledFor, status, createdAt]
+      properties:
+        id:
+          type: string
+          example: rem_01JY7KD0E1F2G3H4I5J6K7L8M9
+        bookingId:
+          type: string
+          example: bk_01JY7K1R2S3T4U5V6W7X8Y9Z0A
+        channel:
+          $ref: '#/components/schemas/ReminderChannel'
+        scheduledFor:
+          type: string
+          format: date-time
+          example: '2026-04-02T13:30:00Z'
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        status:
+          $ref: '#/components/schemas/ReminderStatus'
+        failureReason:
+          type: string
+          nullable: true
+          example: null
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-03-29T10:06:00Z'
+    ReminderListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reminder'
+        total:
+          type: integer
+          example: 1
+    RoomSearchItem:
+      type: object
+      required: [id, roomCode, name, location, capacity, isAvailableForRequestedRange]
+      properties:
+        id:
+          type: string
+          example: room_01
+        roomCode:
+          type: string
+          example: B201
+        name:
+          type: string
+          example: Library Study Room B201
+        location:
+          type: string
+          example: Main Library, Floor 2
+        capacity:
+          type: integer
+          example: 6
+        isAvailableForRequestedRange:
+          type: boolean
+          example: true
+    RoomSearchResponse:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomSearchItem'
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 1
+    Room:
+      type: object
+      required: [id, roomCode, name, location, capacity, isActive, createdAt]
+      properties:
+        id:
+          type: string
+          example: room_01
+        roomCode:
+          type: string
+          example: B201
+        name:
+          type: string
+          example: Library Study Room B201
+        location:
+          type: string
+          example: Main Library, Floor 2
+        capacity:
+          type: integer
+          example: 6
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-03-01T08:00:00Z'
+    AvailabilityWindow:
+      type: object
+      required: [startsAt, endsAt, status]
+      properties:
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [available, booked]
+    RoomAvailabilityResponse:
+      type: object
+      required: [roomId, requestedStartsAt, requestedEndsAt, windows]
+      properties:
+        roomId:
+          type: string
+          example: room_01
+        requestedStartsAt:
+          type: string
+          format: date-time
+        requestedEndsAt:
+          type: string
+          format: date-time
+        windows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilityWindow'
+    CreateBookingRequest:
+      type: object
+      required: [roomId, startsAt, endsAt]
+      properties:
+        roomId:
+          type: string
+          example: room_01
+        startsAt:
+          type: string
+          format: date-time
+          example: '2026-04-02T14:00:00Z'
+        endsAt:
+          type: string
+          format: date-time
+          example: '2026-04-02T16:00:00Z'
+    UpdateBookingRequest:
+      type: object
+      required: [startsAt, endsAt]
+      properties:
+        startsAt:
+          type: string
+          format: date-time
+          example: '2026-04-02T15:00:00Z'
+        endsAt:
+          type: string
+          format: date-time
+          example: '2026-04-02T17:00:00Z'
+    CancelBookingRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          example: Study group rescheduled
+    UserRef:
+      type: object
+      required: [id, fullName]
+      properties:
+        id:
+          type: string
+        fullName:
+          type: string
+    RoomRef:
+      type: object
+      required: [id, roomCode, name]
+      properties:
+        id:
+          type: string
+        roomCode:
+          type: string
+        name:
+          type: string
+    RoomRefWithLocation:
+      allOf:
+        - $ref: '#/components/schemas/RoomRef'
+        - type: object
+          properties:
+            location:
+              type: string
+              example: Main Library, Floor 2
+    BookingDetail:
+      type: object
+      required: [id, user, room, startsAt, endsAt, status, checkedIn, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserRef'
+        room:
+          $ref: '#/components/schemas/RoomRefWithLocation'
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/BookingStatus'
+        checkedIn:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdminBookingListResponse:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingDetail'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+    AdminUserSummary:
+      type: object
+      required: [id, fullName, email, role, activeStrikes, accountState]
+      properties:
+        id:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/UserRole'
+        activeStrikes:
+          type: integer
+        accountState:
+          $ref: '#/components/schemas/AccountState'
+    AdminUserListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminUserSummary'
+        total:
+          type: integer
+    Strike:
+      type: object
+      required: [id, userId, reason, createdAt]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+        givenBy:
+          type: string
+          nullable: true
+    StrikeListResponse:
+      type: object
+      required: [userId, activeStrikes, items]
+      properties:
+        userId:
+          type: string
+        activeStrikes:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Strike'
+    CreateStrikeRequest:
+      type: object
+      required: [userId, reason]
+      properties:
+        userId:
+          type: string
+        reason:
+          type: string
+        sourceBookingId:
+          type: string
+          nullable: true
+    RevokeStrikeRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+    AdminRoomListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Room'
+        total:
+          type: integer
+    CreateRoomRequest:
+      type: object
+      required: [roomCode, name, location, capacity]
+      properties:
+        roomCode:
+          type: string
+        name:
+          type: string
+        location:
+          type: string
+        capacity:
+          type: integer
+          minimum: 1
+    UpdateRoomRequest:
+      type: object
+      properties:
+        roomCode:
+          type: string
+        name:
+          type: string
+        location:
+          type: string
+        capacity:
+          type: integer
+          minimum: 1
+        isActive:
+          type: boolean
+    RoomUsageMetric:
+      type: object
+      required: [key, totalBookings, totalHours, noShowCount]
+      properties:
+        key:
+          type: string
+          example: B201
+        totalBookings:
+          type: integer
+          example: 18
+        totalHours:
+          type: integer
+          example: 36
+        noShowCount:
+          type: integer
+          example: 2
+    RoomUsageMetricsResponse:
+      type: object
+      required: [groupBy, startsAt, endsAt, items]
+      properties:
+        groupBy:
+          type: string
+          enum: [room, date]
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomUsageMetric'
+    ErrorBody:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: BOOKING_CONFLICT
+        message:
+          type: string
+          example: The selected time range is no longer available.
+        details:
+          type: object
+          additionalProperties: true
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+  responses:
+    BadRequest:
+      description: Invalid request or validation failure
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden, restricted, or blocked action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Requested resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: State or booking conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate an existing user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /me:
+    get:
+      tags: [Account]
+      summary: Get the authenticated user's base profile
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /me/account-status:
+    get:
+      tags: [Account]
+      summary: Get derived account standing and booking eligibility
+      responses:
+        '200':
+          description: Account standing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /me/account-activities:
+    get:
+      tags: [Account]
+      summary: Get the derived account activity feed
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Derived account activity feed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountActivityListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /me/bookings:
+    get:
+      tags: [Account]
+      summary: Get the authenticated user's bookings
+      parameters:
+        - in: query
+          name: scope
+          description: Booking list scope, separate from booking.status values
+          schema:
+            type: string
+            enum: [active, past, all]
+            default: all
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: User bookings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /me/reminders:
+    get:
+      tags: [Account]
+      summary: Get the authenticated user's reminders
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/ReminderStatus'
+        - in: query
+          name: bookingId
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: User reminders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /rooms:
+    get:
+      tags: [Rooms]
+      summary: Search rooms by filters and requested availability
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: minCapacity
+          schema:
+            type: integer
+            minimum: 1
+        - $ref: '#/components/parameters/StartsAt'
+        - $ref: '#/components/parameters/EndsAt'
+        - in: query
+          name: onlyAvailable
+          schema:
+            type: boolean
+            default: true
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Room search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomSearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /rooms/{roomId}:
+    get:
+      tags: [Rooms]
+      summary: Get room details
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /rooms/{roomId}/availability:
+    get:
+      tags: [Rooms]
+      summary: Get derived availability windows for a room
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/StartsAt'
+        - $ref: '#/components/parameters/EndsAt'
+      responses:
+        '200':
+          description: Derived room availability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomAvailabilityResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /bookings:
+    post:
+      tags: [Bookings]
+      summary: Create a booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /bookings/{bookingId}:
+    get:
+      tags: [Bookings]
+      summary: Get booking details
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags: [Bookings]
+      summary: Modify a booking before the allowed deadline
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBookingRequest'
+      responses:
+        '200':
+          description: Booking updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /bookings/{bookingId}/cancel:
+    post:
+      tags: [Bookings]
+      summary: Cancel a booking before the allowed deadline
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelBookingRequest'
+      responses:
+        '200':
+          description: Booking cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/bookings:
+    get:
+      tags: [Admin]
+      summary: Get the admin booking overview list
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/BookingStatus'
+        - in: query
+          name: userId
+          schema:
+            type: string
+        - in: query
+          name: roomId
+          schema:
+            type: string
+        - $ref: '#/components/parameters/StartsAt'
+        - $ref: '#/components/parameters/EndsAt'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Admin booking overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBookingListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/bookings/{bookingId}:
+    get:
+      tags: [Admin]
+      summary: Get booking details for admin review
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin booking detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: Search the student directory for strike management
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student directory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/users/{userId}/strikes:
+    get:
+      tags: [Admin]
+      summary: Get strike history and active strike count for a user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Strike history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrikeListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/strikes:
+    post:
+      tags: [Admin]
+      summary: Create a strike record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStrikeRequest'
+      responses:
+        '201':
+          description: Strike created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Strike'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/strikes/{strikeId}/revoke:
+    post:
+      tags: [Admin]
+      summary: Revoke a strike record without deleting it
+      parameters:
+        - in: path
+          name: strikeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeStrikeRequest'
+      responses:
+        '200':
+          description: Strike revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Strike'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/rooms:
+    get:
+      tags: [Admin]
+      summary: Get room inventory
+      parameters:
+        - in: query
+          name: isActive
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Room inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRoomListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Admin]
+      summary: Create a room
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+      responses:
+        '201':
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/rooms/{roomId}:
+    patch:
+      tags: [Admin]
+      summary: Update room details or active state
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoomRequest'
+      responses:
+        '200':
+          description: Room updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/analytics/room-usage:
+    get:
+      tags: [Admin]
+      summary: Get grouped room usage metrics
+      parameters:
+        - in: query
+          name: groupBy
+          schema:
+            type: string
+            enum: [room, date]
+            default: room
+        - $ref: '#/components/parameters/StartsAt'
+        - $ref: '#/components/parameters/EndsAt'
+      responses:
+        '200':
+          description: Grouped room usage metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomUsageMetricsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'

@@ -1,10 +1,10 @@
-!/usr/bin/env bash
+#!/usr/bin/env bash
 
-set-x
-set-eo pipefail
+set -x
+set -eo pipefail
 
 # Check if a custom user has been set, otherwise default to 'postgres'
-DB_USER=${POSTGRES_USER:=postgres}
+DB_USER="${POSTGRES_USER:=postgres}"
 # Check if a custom password has been set, otherwise default to 'password'
 DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
 # Check if a custom database name has been set, otherwise default to 'fair_room'
@@ -25,9 +25,10 @@ then
   CONTAINER_NAME="postgres_$(date '+%s')"
   # Launch postgres using Docker
   docker run \
-      --env POSTGRES_USER=${SUPERUSER} \
-      --env POSTGRES_PASSWORD=${SUPERUSER_PWD} \
-      --health-cmd="pg_isready -U ${SUPERUSER} || exit 1" \
+      --env POSTGRES_USER="${DB_USER}" \
+      --env POSTGRES_PASSWORD="${DB_PASSWORD}" \
+      --env POSTGRES_DB="${DB_NAME}" \
+      --health-cmd="pg_isready -U ${DB_USER} || exit 1" \
       --health-interval=1s \
       --health-timeout=5s \
       --health-retries=5 \
@@ -44,8 +45,9 @@ then
     >&2 echo "Postgres is still unavailable - sleeping"
     sleep 1 
   done
+fi
 
-#Keep pinging Postgres until it's ready to accept commands
+# Keep pinging Postgres until it's ready to accept commands
 export PGPASSWORD="${DB_PASSWORD}"
 until psql -h "localhost" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c '\q'; do
 	>&2 echo "Postgres is still unavailable - sleeping"
@@ -53,5 +55,5 @@ until psql -h "localhost" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c '\q';
 done
 
 >&2 echo "Postgres is up and running on port ${DB_PORT}!"
-export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
+export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}"
 sea-orm-cli migrate up
