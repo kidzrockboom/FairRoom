@@ -23,7 +23,7 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(User::Table)
                     .if_not_exists()
-                    .col(pk_uuid(User::Id).auto_increment().not_null().primary_key())
+                    .col(pk_uuid(User::Id).not_null().primary_key())
                     .col(string(User::FullName).not_null())
                     .col(string(User::Email).not_null().unique_key())
                     .col(string(User::Password).not_null().unique_key())

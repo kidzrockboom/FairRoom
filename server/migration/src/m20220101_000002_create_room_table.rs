@@ -11,12 +11,16 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Room::Table)
                     .if_not_exists()
-                    .col(pk_auto(Room::Id))
-                    .col(string(Room::RoomName).not_null())
-                    .col(string(Room::Location).not_null())
+                    .col(pk_uuid(Room::Id).not_null().primary_key())
+                    .col(string(Room::RoomName).not_null().unique_key())
+                    .col(text(Room::Location).not_null())
                     .col(integer(Room::Capacity).not_null())
-                    .col(string(Room::UsageNotes))
-                    .col(interval_uniq(Room::TimeSlots))
+                    .col(text(Room::UsageNotes))
+                    .col(
+                        ColumnDef::new(Room::TimeSlots)
+                            .custom("tstzrange")
+                            .not_null(),
+                    )
                     .to_owned(),
             )
             .await
