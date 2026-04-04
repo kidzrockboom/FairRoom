@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
                     .col(text(Strike::Reason).not_null())
                     .col(date_time(Strike::CreatedAt).not_null())
                     .col(date_time(Strike::RevokedAt))
-                    .col(uuid(Strike::GivenBy).not_null())
+                    .col(uuid(Strike::GivenBy))
                     .to_owned(),
             )
             .await
@@ -32,7 +32,7 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table("strike").to_owned())
+            .drop_table(Table::drop().table(Strike::Table).to_owned())
             .await
     }
 }
@@ -52,11 +52,4 @@ enum Strike {
 enum User {
     Table,
     Id,
-    FullName,
-    Email,
-    Password,
-    Strikes,
-    Role,
-    Bookings,
-    CreatedAt,
 }

@@ -26,14 +26,12 @@ impl MigrationTrait for Migration {
                     .col(pk_uuid(User::Id).not_null().primary_key())
                     .col(string(User::FullName).not_null())
                     .col(string(User::Email).not_null().unique_key())
-                    .col(string(User::Password).not_null().unique_key())
-                    .col(integer(User::Strikes).not_null())
+                    .col(string(User::PasswordHash).not_null())
                     .col(
                         ColumnDef::new(User::Role)
                             .enumeration(Role::RoleEnum, [Role::Admin, Role::Student])
                             .not_null(),
                     )
-                    .col(integer(User::Bookings).not_null())
                     .col(timestamp(User::CreatedAt).not_null())
                     .to_owned(),
             )
@@ -57,10 +55,8 @@ enum User {
     Id,
     FullName,
     Email,
-    Password,
-    Strikes,
+    PasswordHash,
     Role,
-    Bookings,
     CreatedAt,
 }
 
