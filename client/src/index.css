@@ -1,0 +1,121 @@
+/*
+ * FairRoom — Global stylesheet
+ *
+ * Layer order:
+ *  1. Tailwind base (preflight + utilities) — via @import "tailwindcss"
+ *  2. @theme block — brand tokens for incremental Tailwind migration
+ *  3. Component CSS files are imported inside their TSX modules and cascade
+ *     after this file, preserving existing styles during migration.
+ *
+ * Fonts (Poppins + Inter) are loaded via <link> in index.html.
+ */
+
+@import "tailwindcss";
+
+/* ============================================================
+   Theme tokens
+   All values derived from the existing dashboard.css / admin.css.
+   Changing a value here updates both the Tailwind utility class
+   AND the corresponding CSS custom property used by legacy CSS.
+   ============================================================ */
+
+@theme {
+
+  /* --- Typography ----------------------------------------- */
+
+  /* Inter is the body/UI font; override Tailwind's default sans */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  /* Poppins is for headings/display; available as font-heading utility */
+  --font-heading: 'Poppins', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+
+  /* --- Brand purple ----------------------------------------
+     Source: --primary: #5b3df5 throughout dashboard.css/admin.css
+     Tints extracted from: .booking-card-header (#f3f1ff),
+       .standing-pill (#ede9ff), .selection-card (#cfc8ff/#f3f1ff),
+       .eff-tag.high (#ece9ff), .booking-bell bg (#e8e3ff),
+       .dual-range-active (#5b3df5), .account-badge active style (#5637f0)
+     --------------------------------------------------------- */
+  --color-brand-50:  #f3f1ff;
+  --color-brand-100: #ede9ff;
+  --color-brand-200: #e8e3ff;
+  --color-brand-300: #cfc8ff;
+  --color-brand-400: #b8a8ff;
+  --color-brand-500: #5b3df5;   /* --primary */
+  --color-brand-600: #4b35d2;   /* .standing-pill text, darker hover */
+  --color-brand-700: #3a28a8;
+
+
+  /* --- Neutral surfaces ------------------------------------
+     Source: --bg, --panel, --panel-soft from dashboard.css :root
+     --------------------------------------------------------- */
+  --color-canvas:        #f7f7fb;   /* page background   / --bg */
+  --color-surface:       #ffffff;   /* card / panel      / --panel */
+  --color-surface-soft:  #f7f7fa;   /* tinted panel      / --panel-soft */
+  --color-surface-raised: #f7f8fb;  /* table header bg, toolbar chips */
+
+
+  /* --- Text -----------------------------------------------
+     Source: --text, --muted from dashboard.css :root;
+     secondary grays from .profile-id, .muted, etc.
+     --------------------------------------------------------- */
+  --color-content:  #1f2430;   /* primary text  / --text */
+  --color-muted:    #5f6573;   /* secondary text / --muted */
+  --color-subtle:   #7a8190;   /* tertiary / meta text */
+
+
+  /* --- Borders --------------------------------------------
+     Source: --border, --border-strong; #e7e9f0 used across admin CSS
+     --------------------------------------------------------- */
+  --color-border:        #e6e8ef;   /* default border / --border */
+  --color-border-strong: #d8dce6;   /* inputs, etc.   / --border-strong */
+  --color-border-ui:     #e7e9f0;   /* admin card borders */
+
+
+  /* --- Semantic: success ----------------------------------
+     Source: .admin-status-pill.active, .account-badge.good,
+             .status-tag.completed
+     --------------------------------------------------------- */
+  --color-success-subtle: #ecf8f0;
+  --color-success:        #267647;
+
+
+  /* --- Semantic: warning ----------------------------------
+     Source: .account-badge.warned, .policy-card (border #f2caa5, bg #fff8f2),
+             .note-warning (border #f3c89c, bg #fff7f0)
+     --------------------------------------------------------- */
+  --color-warning-subtle: #fff3e8;
+  --color-warning:        #ad5d21;
+
+
+  /* --- Semantic: danger -----------------------------------
+     Source: .admin-status-pill.no_show, .account-badge.restricted,
+             .status-tag.incident, .strike-3, .danger-inline
+     --------------------------------------------------------- */
+  --color-danger-subtle: #ffeceb;
+  --color-danger:        #d04343;
+
+
+  /* --- Semantic: info -------------------------------------
+     Source: .admin-status-pill.completed (#eef4ff / #3558a8)
+     --------------------------------------------------------- */
+  --color-info-subtle: #eef4ff;
+  --color-info:        #3558a8;
+
+
+  /* --- Border radius --------------------------------------
+     Named to match the app's actual usage patterns so future
+     Tailwind refactors can use e.g. rounded-card, rounded-input.
+     --------------------------------------------------------- */
+  --radius-input: 8px;    /* inputs, chips, small buttons */
+  --radius-panel: 10px;   /* filter panels, inline cards */
+  --radius-card:  12px;   /* main surface cards */
+  --radius-full:  9999px; /* pills, avatar circles */
+
+
+  /* --- Shadows --------------------------------------------
+     ring shadow used on .slot-btn.selected, .student-row.active
+     --------------------------------------------------------- */
+  --shadow-ring-brand: 0 0 0 2px rgba(91, 61, 245, 0.12);
+
+}
