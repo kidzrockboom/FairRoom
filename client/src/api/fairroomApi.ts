@@ -6,7 +6,7 @@ import {
   roomAvailabilityTemplates,
   rooms,
   users,
-} from "../data/mockData";
+} from "@/data/mockData";
 import type {
   AccountActivityListResponse,
   AccountState,

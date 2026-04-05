@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { fairroomApi } from "../api/fairroomApi";
-import type { AccountActivityItem, AccountStatusResponse } from "../api/contracts";
+import { fairroomApi } from "@/api/fairroomApi";
+import type { AccountActivityItem, AccountStatusResponse } from "@/api/contracts";
 
 function AccountStatusPage() {
   const [accountStatus, setAccountStatus] = useState<AccountStatusResponse | null>(null);

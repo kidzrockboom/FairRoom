@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { currentUser } from "../../data/sessionMock";
+import { currentUser } from "@/data/sessionMock";
 
 type NavItem = { to: string; label: string };
 

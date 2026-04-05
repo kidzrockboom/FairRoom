@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import FilterPanel from "../components/dashboard/FilterPanel";
-import { fairroomApi } from "../api/fairroomApi";
-import type { RoomSearchItem } from "../api/contracts";
+import FilterPanel from "@/components/dashboard/FilterPanel";
+import { fairroomApi } from "@/api/fairroomApi";
+import type { RoomSearchItem } from "@/api/contracts";
 
 type SortOption = "capacity-asc" | "capacity-desc" | "name-asc";
 const ITEMS_PER_PAGE = 6;

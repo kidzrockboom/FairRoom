@@ -3,8 +3,8 @@ import {
   performanceRows,
   usageAnomalies,
   usageDistribution,
-} from "../../../data/adminMockData";
-import "../../../styles/admin.css";
+} from "@/data/adminMockData";
+import "../../styles/admin.css";
 
 function AdminAnalyticsPage() {
   const maxHours = Math.max(...usageDistribution.map((x) => x.hours), 1);

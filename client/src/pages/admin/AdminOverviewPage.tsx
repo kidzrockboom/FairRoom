@@ -6,8 +6,8 @@ import {
   adminRecentActivities,
   adminProTip,
   adminOverviewHeader,
-} from "../../../data/adminMockData";
-import "../../../styles/admin.css";
+} from "@/data/adminMockData";
+import "../../styles/admin.css";
 
 const formatBookingStatus = (status: AdminBookingStatus) => {
   switch (status) {

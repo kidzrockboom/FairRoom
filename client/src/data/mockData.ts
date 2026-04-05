@@ -4,7 +4,7 @@ import type {
   Reminder,
   Room,
   UserProfile,
-} from "../api/contracts";
+} from "@/api/contracts";
 
 export type MockUser = UserProfile & {
   activeStrikes: number;
@@ -79,7 +79,7 @@ export const users: MockUser[] = [
     id: CURRENT_USER_ID,
     fullName: "Alice Johnson",
     email: "alice@example.com",
-    role: "admin",
+    role: "student",
     createdAt: "2026-01-10T09:30:00Z",
     activeStrikes: 1,
   },

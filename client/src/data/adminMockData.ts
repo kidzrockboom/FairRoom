@@ -1,4 +1,4 @@
-import type { AccountState, BookingStatus } from "../api/contracts";
+import type { AccountState, BookingStatus } from "@/api/contracts";
 
 /* =========================
    Admin Overview

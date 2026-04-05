@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { adminStudents } from "../../../data/adminMockData";
-import "../../../styles/admin.css";
+import { adminStudents } from "@/data/adminMockData";
+import "../../styles/admin.css";
 
 function AdminStrikesPage() {
   const [query, setQuery] = useState("");
