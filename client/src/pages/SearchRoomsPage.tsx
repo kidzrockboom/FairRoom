@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import FilterPanel from "../../components/dashboard/FilterPanel";
-import { fairroomApi } from "../../api/fairroomApi";
-import type { RoomSearchItem } from "../../api/contracts";
+import FilterPanel from "../components/dashboard/FilterPanel";
+import { fairroomApi } from "../api/fairroomApi";
+import type { RoomSearchItem } from "../api/contracts";
 
 type SortOption = "capacity-asc" | "capacity-desc" | "name-asc";
 const ITEMS_PER_PAGE = 6;
@@ -222,7 +222,7 @@ function SearchRoomsPage() {
                       <button
                         className="btn-secondary"
                         onClick={() =>
-                          navigate(`/app/rooms/${room.id}`, {
+                          navigate(`/rooms/${room.id}`, {
                             state: { date, timeRange },
                           })
                         }
@@ -233,7 +233,7 @@ function SearchRoomsPage() {
                       <button
                         className="btn-primary"
                         onClick={() =>
-                          navigate(`/app/rooms/${room.id}`, {
+                          navigate(`/rooms/${room.id}`, {
                             state: { date, timeRange },
                           })
                         }

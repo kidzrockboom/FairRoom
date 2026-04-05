@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { fairroomApi } from "../../api/fairroomApi";
-import type { AccountActivityItem, AccountStatusResponse } from "../../api/contracts";
+import { fairroomApi } from "../api/fairroomApi";
+import type { AccountActivityItem, AccountStatusResponse } from "../api/contracts";
 
 function AccountStatusPage() {
   const [accountStatus, setAccountStatus] = useState<AccountStatusResponse | null>(null);
@@ -114,7 +114,7 @@ function AccountStatusPage() {
       </article>
 
       <div className="quick-actions-grid">
-        <Link to="/app/search" className="quick-action-card">
+        <Link to="/search" className="quick-action-card">
           <div>
             <h3>Find a Room</h3>
             <p>Browse available spaces</p>
@@ -122,7 +122,7 @@ function AccountStatusPage() {
           <span>›</span>
         </Link>
 
-        <Link to="/app/bookings" className="quick-action-card">
+        <Link to="/bookings" className="quick-action-card">
           <div>
             <h3>My Bookings</h3>
             <p>Manage active reservations</p>

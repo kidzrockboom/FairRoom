@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { fairroomApi } from "../../api/fairroomApi";
-import type { BookingSummary, Reminder, Room } from "../../api/contracts";
+import { fairroomApi } from "../api/fairroomApi";
+import type { BookingSummary, Reminder, Room } from "../api/contracts";
 
 const timeLabel = (value: string) =>
   new Intl.DateTimeFormat("en-GB", {
@@ -171,7 +171,7 @@ function MyBookingsPage() {
             <button className="btn-secondary" type="button">
               Get Directions
             </button>
-            <Link to={`/app/rooms/${upcoming.roomId}`} className="btn-primary">
+            <Link to={`/rooms/${upcoming.roomId}`} className="btn-primary">
               View Details →
             </Link>
           </div>

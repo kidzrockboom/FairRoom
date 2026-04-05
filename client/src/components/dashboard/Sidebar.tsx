@@ -4,15 +4,15 @@ import { currentUser } from "../../data/sessionMock";
 type NavItem = { to: string; label: string };
 
 const studentItems: NavItem[] = [
-  { to: "/app/search", label: "Search Rooms" },
-  { to: "/app/bookings", label: "My Bookings" },
-  { to: "/app/account", label: "Account Status" },
+  { to: "/search", label: "Search Rooms" },
+  { to: "/bookings", label: "My Bookings" },
+  { to: "/account", label: "Account Status" },
 ];
 
 const adminItems: NavItem[] = [
-  { to: "/app/admin/overview", label: "Overview" },
-  { to: "/app/admin/strikes", label: "Strikes" },
-  { to: "/app/admin/analytics", label: "Analytics" },
+  { to: "/admin/overview", label: "Overview" },
+  { to: "/admin/strikes", label: "Strikes" },
+  { to: "/admin/analytics", label: "Analytics" },
 ];
 
 function Sidebar() {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { fairroomApi } from "../../api/fairroomApi";
-import type { AvailabilityWindow, Room } from "../../api/contracts";
+import { fairroomApi } from "../api/fairroomApi";
+import type { AvailabilityWindow, Room } from "../api/contracts";
 
 const toDateTimeLabel = (value: string) =>
   new Intl.DateTimeFormat("en-GB", {
@@ -97,7 +97,7 @@ function RoomDetailsPage() {
 
   return (
     <section className="room-details">
-      <Link to="/app/search" className="back-link">
+      <Link to="/search" className="back-link">
         ← Back to Search Results
       </Link>
 
