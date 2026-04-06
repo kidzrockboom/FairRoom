@@ -1,18 +1,58 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import TopNavbar from "@/components/dashboard/TopNavbar";
-import Sidebar from "@/components/dashboard/Sidebar";
-import "../styles/dashboard.css";
+import AppFooter from "@/components/layout/AppFooter";
+import AppHeader from "@/components/layout/AppHeader";
+import AppSidebar from "@/components/layout/AppSidebar";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Menu, iconPropsAction } from "@/lib/icons";
 
 function DashboardLayout() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <div className="dashboard-shell">
-      <TopNavbar />
-      <div className="dashboard-body">
-        <Sidebar />
-        <main className="dashboard-content">
-          <Outlet />
-        </main>
-      </div>
+    <div className="min-h-screen bg-canvas text-content">
+      <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+        <AppHeader
+          mobileSidebarTrigger={
+            <SheetTrigger
+              render={
+                <Button aria-label="Open navigation" size="icon-sm" variant="ghost" />
+              }
+            >
+              <Menu {...iconPropsAction} aria-hidden="true" />
+            </SheetTrigger>
+          }
+        />
+
+        <div className="flex min-h-[calc(100vh-4.5rem)]">
+          <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:block">
+            <AppSidebar />
+          </aside>
+
+          <SheetContent className="w-[290px] border-r border-sidebar-border p-0" side="left">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation</SheetTitle>
+              <SheetDescription>Browse FairRoom sections</SheetDescription>
+            </SheetHeader>
+            <AppSidebar onNavigate={() => setIsSidebarOpen(false)} />
+          </SheetContent>
+
+          <div className="flex min-w-0 flex-1 flex-col">
+            <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+              <Outlet />
+            </main>
+            <AppFooter />
+          </div>
+        </div>
+      </Sheet>
     </div>
   );
 }

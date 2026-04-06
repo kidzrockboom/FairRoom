@@ -27,7 +27,7 @@ export const iconPropsAction = { size: 18, strokeWidth: 1.5 } as const
 export const iconPropsLg = { size: 20, strokeWidth: 1.5 } as const
 
 // ── Navigation ────────────────────────────────
-export { ArrowLeft, ArrowRight, ChevronRight, ChevronLeft, ChevronDown } from 'lucide-react'
+export { ArrowLeft, ArrowRight, ChevronRight, ChevronLeft, ChevronDown, Menu, LayoutDashboard } from 'lucide-react'
 
 // ── Actions ───────────────────────────────────
 export { Plus, Search, Download, Settings, RefreshCw, X } from 'lucide-react'
