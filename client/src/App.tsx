@@ -7,6 +7,7 @@ import BookingReminderPage from "./pages/BookingReminderPage";
 import ConfirmBookingPage from "./pages/ConfirmBookingPage";
 import RoomDetailsPage from "./pages/RoomDetailsPage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
+import AdminInventoryPage from "./pages/admin/AdminInventoryPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { currentUser } from "./data/sessionMock";
 
@@ -45,6 +46,7 @@ function App() {
         <Route element={<RequireRole role="admin" redirectTo="/search" />}>
           <Route path="/admin/overview" element={<AdminBookingsPage />} />
           <Route path="/admin/bookings" element={<AdminBookingsPage />} />
+          <Route path="/admin/inventory" element={<AdminInventoryPage />} />
           <Route path="/admin/strikes" element={<AdminStrikesPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
         </Route>

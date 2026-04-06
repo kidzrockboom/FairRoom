@@ -34,7 +34,7 @@ const studentItems: NavItem[] = [
 const adminItems: NavItem[] = [
   { to: "/admin/overview", label: "Overview", Icon: LayoutDashboard },
   { to: "/admin/strikes", label: "Strikes", Icon: ShieldAlert },
-  { label: "Inventory", Icon: Building2, disabled: true },
+  { to: "/admin/inventory", label: "Inventory", Icon: Building2 },
   { to: "/admin/analytics", label: "Analytics", Icon: BarChart2 },
 ];
 
