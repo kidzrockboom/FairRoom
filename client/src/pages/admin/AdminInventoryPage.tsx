@@ -1,15 +1,15 @@
 import { useState } from "react";
 
-import InventoryAddRoomCard from "@/features/admin-inventory/components/InventoryAddRoomCard";
-import InventoryDeleteDialog from "@/features/admin-inventory/components/InventoryDeleteDialog";
-import InventoryBanner from "@/features/admin-inventory/components/InventoryBanner";
-import InventoryRoomCard from "@/features/admin-inventory/components/InventoryRoomCard";
-import InventoryRoomSheet from "@/features/admin-inventory/components/InventoryRoomSheet";
-import InventoryStats from "@/features/admin-inventory/components/InventoryStats";
+import InventoryAddRoomCard from "@/features/admin/inventory/components/InventoryAddRoomCard";
+import InventoryDeleteDialog from "@/features/admin/inventory/components/InventoryDeleteDialog";
+import InventoryBanner from "@/features/admin/inventory/components/InventoryBanner";
+import InventoryRoomCard from "@/features/admin/inventory/components/InventoryRoomCard";
+import InventoryRoomSheet from "@/features/admin/inventory/components/InventoryRoomSheet";
+import InventoryStats from "@/features/admin/inventory/components/InventoryStats";
 import {
   inventoryHeader,
   inventoryRooms,
-} from "@/features/admin-inventory/adminInventoryContent";
+} from "@/features/admin/inventory/content";
 
 function AdminInventoryPage() {
   const [sheetOpen, setSheetOpen] = useState(false);

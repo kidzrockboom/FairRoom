@@ -4,11 +4,11 @@ import {
   analyticsInsights,
   analyticsKpis,
   analyticsPerformance,
-} from "@/features/admin-analytics/adminAnalyticsContent";
-import AnalyticsKpiGrid from "@/features/admin-analytics/components/AnalyticsKpiGrid";
-import AnalyticsPerformanceTable from "@/features/admin-analytics/components/AnalyticsPerformanceTable";
-import AnalyticsSystemInsights from "@/features/admin-analytics/components/AnalyticsSystemInsights";
-import AnalyticsUsageDistribution from "@/features/admin-analytics/components/AnalyticsUsageDistribution";
+} from "@/features/admin/analytics/content";
+import AnalyticsKpiGrid from "@/features/admin/analytics/components/AnalyticsKpiGrid";
+import AnalyticsPerformanceTable from "@/features/admin/analytics/components/AnalyticsPerformanceTable";
+import AnalyticsSystemInsights from "@/features/admin/analytics/components/AnalyticsSystemInsights";
+import AnalyticsUsageDistribution from "@/features/admin/analytics/components/AnalyticsUsageDistribution";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Download, Filter, Info, iconProps } from "@/lib/icons";

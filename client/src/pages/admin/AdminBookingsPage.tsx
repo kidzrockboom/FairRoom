@@ -1,15 +1,15 @@
 import { Download, Plus } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
-import AdminBookingsFilters from "@/features/admin-bookings/components/AdminBookingsFilters";
-import AdminBookingsSidebar from "@/features/admin-bookings/components/AdminBookingsSidebar";
-import AdminBookingsTable from "@/features/admin-bookings/components/AdminBookingsTable";
+import BookingsFilters from "@/features/admin/bookings/components/BookingsFilters";
+import BookingsSidebar from "@/features/admin/bookings/components/BookingsSidebar";
+import BookingsTable from "@/features/admin/bookings/components/BookingsTable";
 import {
   adminBookingsHeader,
   adminBookingsProTip,
   adminBookingsQuickLinks,
   adminBookingsRecentActivities,
   adminBookingsRows,
-} from "@/features/admin-bookings/adminBookingsContent";
+} from "@/features/admin/bookings/content";
 
 function AdminBookingsPage() {
   return (
@@ -34,11 +34,11 @@ function AdminBookingsPage() {
         </div>
       </header>
 
-      <AdminBookingsFilters />
+      <BookingsFilters />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <AdminBookingsTable rows={adminBookingsRows} />
-        <AdminBookingsSidebar
+        <BookingsTable rows={adminBookingsRows} />
+        <BookingsSidebar
           quickLinks={adminBookingsQuickLinks}
           recentActivities={adminBookingsRecentActivities}
           proTip={adminBookingsProTip}
