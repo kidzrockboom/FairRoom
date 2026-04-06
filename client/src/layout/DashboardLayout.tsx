@@ -46,7 +46,7 @@ function DashboardLayout() {
           </SheetContent>
 
           <div className="flex min-w-0 flex-1 flex-col bg-background">
-            <main className="flex-1 bg-background px-4 py-6 sm:px-6 lg:px-8">
+            <main className="flex flex-1 bg-background">
               <Outlet />
             </main>
             <AppFooter />

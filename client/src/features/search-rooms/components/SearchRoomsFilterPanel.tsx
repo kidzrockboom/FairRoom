@@ -24,8 +24,8 @@ function SectionLabel({ children }: { children: string }) {
 
 export default function SearchRoomsFilterPanel() {
   return (
-    <aside className="flex w-full flex-col rounded-card border border-border bg-surface lg:min-h-full lg:w-[272px] lg:shrink-0 lg:self-stretch">
-      <div className="flex items-center justify-between px-4 py-3.5">
+    <aside className="flex w-full flex-col bg-sidebar lg:min-h-full lg:w-[272px] lg:shrink-0 lg:self-stretch">
+      <div className="flex items-center justify-between px-6 py-5">
         <span className="flex items-center gap-2 text-sm font-semibold text-content">
           <Filter {...iconProps} aria-hidden="true" />
           Filters
@@ -42,7 +42,7 @@ export default function SearchRoomsFilterPanel() {
       <Separator />
 
       <div className="flex flex-col gap-0 divide-y divide-border">
-        <section className="space-y-2.5 px-4 py-4">
+        <section className="space-y-2.5 px-6 py-4">
           <SectionLabel>Date</SectionLabel>
           <input
             type="date"
@@ -51,7 +51,7 @@ export default function SearchRoomsFilterPanel() {
           />
         </section>
 
-        <section className="space-y-2.5 px-4 py-4">
+        <section className="space-y-2.5 px-6 py-4">
           <SectionLabel>Capacity</SectionLabel>
           <div className="grid grid-cols-2 gap-2">
             {CAPACITY_OPTIONS.map((cap) => (
@@ -70,7 +70,7 @@ export default function SearchRoomsFilterPanel() {
           </div>
         </section>
 
-        <section className="space-y-2.5 px-4 py-4">
+        <section className="space-y-2.5 px-6 py-4">
           <SectionLabel>Time Range</SectionLabel>
           <Slider
             className="px-0.5 py-3"
@@ -84,7 +84,7 @@ export default function SearchRoomsFilterPanel() {
           </div>
         </section>
 
-        <section className="space-y-3 px-4 py-4">
+        <section className="space-y-3 px-6 py-4">
           <SectionLabel>Amenities</SectionLabel>
           <div className="flex flex-col gap-2.5">
             {AMENITY_OPTIONS.map(({ id, label, defaultChecked }) => (
@@ -101,7 +101,7 @@ export default function SearchRoomsFilterPanel() {
         </section>
       </div>
 
-      <div className="mt-auto border-t border-border px-4 pb-5 pt-4">
+      <div className="mt-auto border-t border-border px-6 pb-6 pt-4">
         <Button className="h-11 w-full text-sm font-semibold">
           Apply Filters
         </Button>

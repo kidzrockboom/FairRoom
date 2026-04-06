@@ -3,7 +3,7 @@ import SearchRoomsResultsPanel from "@/features/search-rooms/components/SearchRo
 
 export default function SearchRoomsPage() {
   return (
-    <div className="flex flex-col gap-6 lg:min-h-[calc(100vh-12rem)] lg:flex-row lg:items-stretch">
+    <div className="flex flex-1 flex-col bg-background lg:min-h-full lg:flex-row lg:items-stretch">
       <SearchRoomsFilterPanel />
       <SearchRoomsResultsPanel />
     </div>
