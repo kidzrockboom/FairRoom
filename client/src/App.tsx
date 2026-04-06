@@ -4,6 +4,7 @@ import SearchRoomsPage from "./pages/SearchRoomsPage";
 import MyBookingsPage from "./pages/MyBookingsPage";
 import AccountStatusPage from "./pages/AccountStatusPage";
 import BookingReminderPage from "./pages/BookingReminderPage";
+import ConfirmBookingPage from "./pages/ConfirmBookingPage";
 import RoomDetailsPage from "./pages/RoomDetailsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { currentUser } from "./data/sessionMock";
@@ -35,6 +36,7 @@ function App() {
         {/* student */}
         <Route path="/search" element={<SearchRoomsPage />} />
         <Route path="/rooms/:roomId" element={<RoomDetailsPage />} />
+        <Route path="/bookings/confirm" element={<ConfirmBookingPage />} />
         <Route path="/bookings" element={<MyBookingsPage />} />
         <Route path="/bookings/reminder" element={<BookingReminderPage />} />
         <Route path="/account" element={<AccountStatusPage />} />

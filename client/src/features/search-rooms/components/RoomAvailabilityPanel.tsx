@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle, Clock, iconProps } from "@/lib/icons";
 import SlotButton, { type TimeSlot } from "@/features/search-rooms/components/SlotButton";
+import { buttonVariants } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const PLACEHOLDER_SLOTS: TimeSlot[] = [
   { time: "08:00 AM", status: "available" },
@@ -70,9 +71,16 @@ export default function RoomAvailabilityPanel() {
         </div>
       </div>
 
-      <Button className="h-12 w-full text-base font-semibold">
+      <Link
+        to="/bookings/confirm"
+        className={buttonVariants({
+          variant: "default",
+          size: "default",
+          className: "h-12 w-full text-base font-semibold",
+        })}
+      >
         Book This Room
-      </Button>
+      </Link>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col items-center gap-2 rounded-card border border-border bg-sidebar/65 p-4 text-center">
