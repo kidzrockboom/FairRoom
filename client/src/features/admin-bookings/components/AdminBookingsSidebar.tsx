@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import type { AdminQuickLink, AdminRecentActivity } from "@/data/adminMockData";
+import type { AdminQuickLink, AdminRecentActivity } from "@/features/admin-bookings/adminBookingsContent";
 
 type AdminBookingsSidebarProps = {
   quickLinks: AdminQuickLink[];

@@ -11,13 +11,6 @@ import {
 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Table,
   TableBody,
   TableCell,
@@ -25,20 +18,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { AdminBookingRow, AdminBookingStatus } from "@/data/adminMockData";
+import type { BookingStatus } from "@/api/contracts";
+import type { AdminBookingRow } from "@/features/admin-bookings/adminBookingsContent";
 
 type AdminBookingsTableProps = {
   rows: AdminBookingRow[];
 };
 
-const STATUS_LABELS: Record<AdminBookingStatus, string> = {
+const STATUS_LABELS: Record<BookingStatus, string> = {
   active: "Active",
   cancelled: "Cancelled",
   completed: "Completed",
   no_show: "No-Show",
 };
 
-const STATUS_CLASSES: Record<AdminBookingStatus, string> = {
+const STATUS_CLASSES: Record<BookingStatus, string> = {
   active: "border-border bg-surface text-content",
   cancelled: "border-border bg-muted/70 text-muted-foreground",
   completed: "border-border bg-muted/50 text-muted-foreground",
@@ -130,25 +124,14 @@ export default function AdminBookingsTable({ rows }: AdminBookingsTableProps) {
                 </TableCell>
 
                 <TableCell className="px-4 py-4 text-right whitespace-normal">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 text-muted-foreground hover:text-content"
-                        >
-                          <MoreHorizontal data-icon="inline-start" />
-                        </Button>
-                      }
-                    />
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View booking</DropdownMenuItem>
-                      <DropdownMenuItem>View user</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="destructive">Cancel booking</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-muted-foreground hover:text-content"
+                    aria-label={`More actions for ${row.userFullName}`}
+                  >
+                    <MoreHorizontal data-icon="inline-start" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
