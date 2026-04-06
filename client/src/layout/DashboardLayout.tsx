@@ -18,7 +18,7 @@ function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-canvas text-content">
+    <div className="min-h-screen bg-background text-content">
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <AppHeader
           mobileSidebarTrigger={
@@ -32,7 +32,7 @@ function DashboardLayout() {
           }
         />
 
-        <div className="flex min-h-[calc(100vh-4.5rem)]">
+        <div className="flex min-h-[calc(100vh-4.5rem)] bg-background">
           <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:block">
             <AppSidebar />
           </aside>
@@ -45,8 +45,8 @@ function DashboardLayout() {
             <AppSidebar onNavigate={() => setIsSidebarOpen(false)} />
           </SheetContent>
 
-          <div className="flex min-w-0 flex-1 flex-col">
-            <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 flex-1 flex-col bg-background">
+            <main className="flex-1 bg-background px-4 py-6 sm:px-6 lg:px-8">
               <Outlet />
             </main>
             <AppFooter />

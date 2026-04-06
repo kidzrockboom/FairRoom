@@ -84,7 +84,7 @@
  }
 
 :root {
-  --background: #f7f7fb;
+  --background: #ffffff;
   --foreground: #1f2430;
   --card: #ffffff;
   --card-foreground: #1f2430;
@@ -103,7 +103,7 @@
   --input: #d8dce6;
   --ring: rgba(91, 61, 245, 0.2);
   --radius: 0.75rem;
-  --sidebar: #ffffff;
+  --sidebar: #f7f7fb;
   --sidebar-foreground: #1f2430;
   --sidebar-primary: #5b3df5;
   --sidebar-primary-foreground: #ffffff;
