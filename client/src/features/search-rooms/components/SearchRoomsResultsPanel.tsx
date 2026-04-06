@@ -15,9 +15,6 @@ import {
 } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
-// ─── Placeholder data ─────────────────────────────────────────────────────────
-// Replaced with real API results when the hook is wired in.
-
 type PlaceholderRoom = {
   id: string;
   name: string;
@@ -57,12 +54,9 @@ const STATE_NOTES = [
 const CARD_BODY_TEXT =
   "Equipped with ergonomic seating and high-speed internal network";
 
-// ─── RoomCard ─────────────────────────────────────────────────────────────────
-
 function RoomCard({ room }: { room: PlaceholderRoom }) {
   return (
     <article className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
-      {/* Name + status badge */}
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-[15px] font-semibold leading-snug text-content">
           {room.name}
@@ -80,13 +74,11 @@ function RoomCard({ room }: { room: PlaceholderRoom }) {
         </Badge>
       </div>
 
-      {/* Location */}
       <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <MapPin {...iconProps} aria-hidden="true" className="shrink-0" />
         {room.location}
       </p>
 
-      {/* Capacity + amenity icons */}
       <div className="flex items-center gap-3 text-sm font-medium text-content">
         <span className="flex items-center gap-1.5">
           <Users {...iconProps} aria-hidden="true" />
@@ -96,10 +88,8 @@ function RoomCard({ room }: { room: PlaceholderRoom }) {
         <Monitor {...iconProps} aria-hidden="true" className="text-muted-foreground" />
       </div>
 
-      {/* Supporting copy */}
       <p className="text-sm leading-relaxed text-muted-foreground">{CARD_BODY_TEXT}</p>
 
-      {/* Action buttons */}
       <div className="mt-auto grid grid-cols-2 gap-2 pt-1">
         <Button variant="outline" size="sm" className="h-9 text-sm text-content">
           Details
@@ -112,12 +102,9 @@ function RoomCard({ room }: { room: PlaceholderRoom }) {
   );
 }
 
-// ─── Results panel ────────────────────────────────────────────────────────────
-
 export default function SearchRoomsResultsPanel() {
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5">
-      {/* ── Header: title + search input ─────────────────────────────── */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-heading text-3xl font-bold leading-tight text-content">
@@ -143,7 +130,6 @@ export default function SearchRoomsResultsPanel() {
         </div>
       </div>
 
-      {/* ── Active filter chips ───────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
           Active:
@@ -173,7 +159,6 @@ export default function SearchRoomsResultsPanel() {
         </button>
       </div>
 
-      {/* ── State note boxes ──────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {STATE_NOTES.map((note) => (
           <div
@@ -194,7 +179,6 @@ export default function SearchRoomsResultsPanel() {
         ))}
       </div>
 
-      {/* ── Results bar: count + sort ────────────────────────────────── */}
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-heading text-xl font-semibold text-content">
           Showing {PLACEHOLDER_ROOMS.length} Rooms
@@ -217,14 +201,12 @@ export default function SearchRoomsResultsPanel() {
 
       <Separator />
 
-      {/* ── Room cards grid ───────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {PLACEHOLDER_ROOMS.map((room) => (
           <RoomCard key={room.id} room={room} />
         ))}
       </div>
 
-      {/* ── Pagination ────────────────────────────────────────────────── */}
       <div className="flex items-center justify-center gap-3 py-4">
         <Button
           variant="outline"
