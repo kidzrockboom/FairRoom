@@ -79,7 +79,7 @@ export const users: MockUser[] = [
     id: CURRENT_USER_ID,
     fullName: "Alice Johnson",
     email: "alice@example.com",
-    role: "student",
+    role: "admin",
     createdAt: "2026-01-10T09:30:00Z",
     activeStrikes: 1,
   },

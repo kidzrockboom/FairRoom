@@ -6,10 +6,10 @@ import AccountStatusPage from "./pages/AccountStatusPage";
 import BookingReminderPage from "./pages/BookingReminderPage";
 import ConfirmBookingPage from "./pages/ConfirmBookingPage";
 import RoomDetailsPage from "./pages/RoomDetailsPage";
+import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { currentUser } from "./data/sessionMock";
 
-import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminStrikesPage from "./pages/admin/AdminStrikesPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 
@@ -43,7 +43,8 @@ function App() {
 
         {/* admin */}
         <Route element={<RequireRole role="admin" redirectTo="/search" />}>
-          <Route path="/admin/overview" element={<AdminOverviewPage />} />
+          <Route path="/admin/overview" element={<AdminBookingsPage />} />
+          <Route path="/admin/bookings" element={<AdminBookingsPage />} />
           <Route path="/admin/strikes" element={<AdminStrikesPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
         </Route>
