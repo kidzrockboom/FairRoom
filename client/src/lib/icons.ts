@@ -30,10 +30,10 @@ export const iconPropsLg = { size: 20, strokeWidth: 1.5 } as const
 export { ArrowLeft, ArrowRight, ChevronRight, ChevronLeft, ChevronDown, Menu, LayoutDashboard } from 'lucide-react'
 
 // ── Actions ───────────────────────────────────
-export { Plus, Search, Download, Settings, RefreshCw, X } from 'lucide-react'
+export { Plus, Search, Download, Settings, RefreshCw, X, Filter, SlidersHorizontal } from 'lucide-react'
 
 // ── Booking & rooms ───────────────────────────
-export { Calendar, Clock, MapPin, Building2, DoorOpen } from 'lucide-react'
+export { Calendar, Clock, MapPin, Building2, DoorOpen, Wifi, Monitor } from 'lucide-react'
 
 // ── User & account ────────────────────────────
 export { User, Users, LogOut } from 'lucide-react'
