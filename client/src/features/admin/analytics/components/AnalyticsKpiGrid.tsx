@@ -14,12 +14,12 @@ function AnalyticsKpiCard({ item }: { item: AnalyticsKpi }) {
 
   return (
     <Card className="border-0 bg-surface shadow-none ring-1 ring-border/40">
-      <CardHeader className="flex flex-row items-start justify-between gap-3 px-4 py-4">
-        <div className="space-y-1">
+      <CardHeader className="flex flex-row items-start justify-between gap-3 px-4 pt-4">
+        <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
             {item.label}
           </p>
-          <CardTitle className="font-heading text-[14px] font-bold tracking-tight text-content">
+          <CardTitle className="font-heading text-3xl font-bold tracking-tight text-content">
             {item.value}
           </CardTitle>
         </div>
