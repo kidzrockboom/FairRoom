@@ -7,7 +7,7 @@ import BookingActionRow from "@/features/bookings/components/BookingActionRow";
 
 export default function ConfirmBookingPage() {
   return (
-    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-0">
+    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <Link
         to="/rooms/room_01"
         className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-content"

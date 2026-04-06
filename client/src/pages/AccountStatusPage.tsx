@@ -12,7 +12,7 @@ function AccountStatusPage() {
     strikeCount >= 3 ? "Booking access is currently paused." : "Your account is in great shape!";
 
   return (
-    <div className="mx-auto flex w-full max-w-[860px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-0">
+    <div className="mx-auto flex w-full max-w-[860px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <header className="space-y-1">
         <h1 className="font-heading text-[30px] font-bold tracking-tight text-content">
           Account Health

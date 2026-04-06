@@ -7,7 +7,7 @@ import ReminderSummaryRow from "@/features/bookings/components/ReminderSummaryRo
 
 export default function BookingReminderPage() {
   return (
-    <div className="mx-auto flex w-full max-w-[760px] flex-col items-center gap-4 px-4 py-6 sm:px-6 lg:px-0">
+    <div className="mx-auto flex w-full max-w-[760px] flex-col items-center gap-4 px-4 py-6 sm:px-6 lg:px-8">
       {/* Card */}
       <div className="w-full overflow-hidden rounded-card border border-border bg-surface">
         <ReminderHero />

@@ -21,7 +21,7 @@ export const adminOverviewHeader = {
   title: "Bookings Overview",
   subtitle: "Monitor and manage all active room reservations in the system.",
   exportButtonLabel: "Export CSV",
-  newBookingButtonLabel: "+ New Booking",
+  newBookingButtonLabel: "New Booking",
 };
 
 export const adminOverviewRows: AdminBookingRow[] = [

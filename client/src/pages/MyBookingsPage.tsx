@@ -6,7 +6,7 @@ import BookingsTabs from "@/features/bookings/components/BookingsTabs";
 
 export default function MyBookingsPage() {
   return (
-    <div className="mx-auto flex w-full max-w-[860px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-0">
+    <div className="mx-auto flex w-full max-w-[860px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <BookingStatusBanner />
 
       <div className="flex flex-wrap items-center justify-between gap-3">

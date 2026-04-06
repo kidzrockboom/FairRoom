@@ -58,25 +58,25 @@ export default function AdminBookingsTable({ rows }: AdminBookingsTableProps) {
   return (
     <section className="space-y-4">
       <div className="overflow-hidden rounded-card border border-border bg-surface">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow className="bg-muted/35 hover:bg-muted/35">
-              <TableHead className="w-[34%] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              <TableHead className="w-[34%] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground whitespace-normal">
                 <span className="inline-flex items-center gap-1.5">
                   User Details
                   <ArrowUpDown {...iconProps} aria-hidden="true" className="text-muted-foreground" />
                 </span>
               </TableHead>
-              <TableHead className="w-[23%] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              <TableHead className="w-[23%] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground whitespace-normal">
                 Room
               </TableHead>
-              <TableHead className="w-[23%] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              <TableHead className="w-[23%] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground whitespace-normal">
                 Date &amp; Time
               </TableHead>
-              <TableHead className="w-[12%] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              <TableHead className="w-[12%] px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground whitespace-normal">
                 Status
               </TableHead>
-              <TableHead className="w-[8%] px-4 py-3 text-right text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              <TableHead className="w-[8%] px-4 py-3 text-right text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground whitespace-normal">
                 Actions
               </TableHead>
             </TableRow>
@@ -85,7 +85,7 @@ export default function AdminBookingsTable({ rows }: AdminBookingsTableProps) {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.id} className="hover:bg-muted/25">
-                <TableCell className="px-4 py-4">
+                <TableCell className="px-4 py-4 whitespace-normal">
                   <div className="flex items-center gap-3">
                     <Avatar size="sm" className="size-9">
                       <AvatarImage src={row.avatarUrl} alt={row.userFullName} />
@@ -100,14 +100,14 @@ export default function AdminBookingsTable({ rows }: AdminBookingsTableProps) {
                   </div>
                 </TableCell>
 
-                <TableCell className="px-4 py-4">
+                <TableCell className="px-4 py-4 whitespace-normal">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-content">{row.roomName}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">ID: {row.roomCode}</p>
                   </div>
                 </TableCell>
 
-                <TableCell className="px-4 py-4">
+                <TableCell className="px-4 py-4 whitespace-normal">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-content">{row.dateLabel}</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -117,7 +117,7 @@ export default function AdminBookingsTable({ rows }: AdminBookingsTableProps) {
                   </div>
                 </TableCell>
 
-                <TableCell className="px-4 py-4">
+                <TableCell className="px-4 py-4 whitespace-normal">
                   <Badge
                     variant="outline"
                     className={cn(
@@ -129,7 +129,7 @@ export default function AdminBookingsTable({ rows }: AdminBookingsTableProps) {
                   </Badge>
                 </TableCell>
 
-                <TableCell className="px-4 py-4 text-right">
+                <TableCell className="px-4 py-4 text-right whitespace-normal">
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={

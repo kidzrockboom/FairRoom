@@ -39,7 +39,7 @@ function AdminBookingsPage() {
   }, [dateFilter, query, statusFilter]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-0">
+    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
           <h1 className="font-heading text-[30px] font-bold tracking-tight text-content">
