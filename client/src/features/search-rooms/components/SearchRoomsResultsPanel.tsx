@@ -4,7 +4,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   ChevronLeft,
   ChevronRight,
-  Info,
   MapPin,
   Monitor,
   Search,
@@ -36,19 +35,6 @@ const ACTIVE_FILTER_CHIPS = [
   { id: "date",     label: "Date: 2024-10-24" },
   { id: "capacity", label: "Capacity: 4+"     },
   { id: "time",     label: "Time: 9AM – 5PM"  },
-];
-
-const STATE_NOTES = [
-  {
-    id: "validation",
-    title: "Validation State Note",
-    body: "Select a date from the past in the sidebar to trigger a validation error callout.",
-  },
-  {
-    id: "result",
-    title: "Result State Note",
-    body: "Selecting capacity '50+' will simulate a 'No Results' state below.",
-  },
 ];
 
 const CARD_BODY_TEXT =
@@ -136,9 +122,10 @@ export default function SearchRoomsResultsPanel() {
         </span>
 
         {ACTIVE_FILTER_CHIPS.map((chip) => (
-          <span
+          <Badge
             key={chip.id}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-sm text-content"
+            className="h-auto gap-1.5 rounded-full border border-border bg-muted-foreground/10 px-3 py-1.5 text-sm font-medium text-content"
+            variant="outline"
           >
             {chip.label}
             <button
@@ -148,7 +135,7 @@ export default function SearchRoomsResultsPanel() {
             >
               <X size={12} strokeWidth={2} aria-hidden="true" />
             </button>
-          </span>
+          </Badge>
         ))}
 
         <button
@@ -157,26 +144,6 @@ export default function SearchRoomsResultsPanel() {
         >
           Clear All
         </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {STATE_NOTES.map((note) => (
-          <div
-            key={note.id}
-            className="flex gap-3 rounded-panel border border-border bg-surface p-3.5"
-          >
-            <Info
-              size={15}
-              strokeWidth={1.5}
-              aria-hidden="true"
-              className="mt-0.5 shrink-0 text-muted-foreground"
-            />
-            <div>
-              <p className="text-sm font-semibold text-content">{note.title}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">{note.body}</p>
-            </div>
-          </div>
-        ))}
       </div>
 
       <div className="flex items-center justify-between gap-3">

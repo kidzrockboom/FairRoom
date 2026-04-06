@@ -1,10 +1,18 @@
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import { Filter, iconProps } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 const CAPACITY_OPTIONS = [2, 4, 8, 12, 20, 50] as const;
 const SELECTED_CAPACITY: number = 4;
+
+const AMENITY_OPTIONS = [
+  { id: "wifi",       label: "High-speed Wifi",   defaultChecked: true  },
+  { id: "projector",  label: "Projector / Screen", defaultChecked: false },
+  { id: "whiteboard", label: "Whiteboard",         defaultChecked: false },
+] as const;
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -16,7 +24,7 @@ function SectionLabel({ children }: { children: string }) {
 
 export default function SearchRoomsFilterPanel() {
   return (
-    <aside className="flex w-full flex-col rounded-card border border-border bg-surface lg:w-[272px] lg:shrink-0">
+    <aside className="flex w-full flex-col rounded-card border border-border bg-surface lg:min-h-full lg:w-[272px] lg:shrink-0 lg:self-stretch">
       <div className="flex items-center justify-between px-4 py-3.5">
         <span className="flex items-center gap-2 text-sm font-semibold text-content">
           <Filter {...iconProps} aria-hidden="true" />
@@ -64,26 +72,36 @@ export default function SearchRoomsFilterPanel() {
 
         <section className="space-y-2.5 px-4 py-4">
           <SectionLabel>Time Range</SectionLabel>
-          <div className="relative px-0.5 py-3">
-            <div className="h-1 w-full rounded-full bg-border" />
-            <div
-              className="absolute top-3 h-1 rounded-full bg-brand-500"
-              style={{ left: "37.5%", right: "30%" }}
-            />
-            <div
-              className="absolute top-1.5 size-4 -translate-x-1/2 rounded-full border-2 border-brand-500 bg-surface shadow-sm"
-              style={{ left: "70%" }}
-            />
-          </div>
-
+          <Slider
+            className="px-0.5 py-3"
+            defaultValue={[9, 17]}
+            max={24}
+            min={0}
+          />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>09:00 AM</span>
             <span>05:00 PM</span>
           </div>
         </section>
+
+        <section className="space-y-3 px-4 py-4">
+          <SectionLabel>Amenities</SectionLabel>
+          <div className="flex flex-col gap-2.5">
+            {AMENITY_OPTIONS.map(({ id, label, defaultChecked }) => (
+              <label
+                key={id}
+                htmlFor={id}
+                className="flex cursor-pointer items-center gap-2.5 text-sm text-content"
+              >
+                <Checkbox id={id} defaultChecked={defaultChecked} />
+                {label}
+              </label>
+            ))}
+          </div>
+        </section>
       </div>
 
-      <div className="mt-auto px-4 pb-5 pt-4">
+      <div className="mt-auto border-t border-border px-4 pb-5 pt-4">
         <Button className="h-11 w-full text-sm font-semibold">
           Apply Filters
         </Button>
