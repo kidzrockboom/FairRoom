@@ -9,17 +9,19 @@ import type { InventoryRoom } from "@/features/admin-inventory/adminInventoryCon
 
 type InventoryRoomCardProps = {
   room: InventoryRoom;
+  onEdit: (room: InventoryRoom) => void;
+  onDelete: (room: InventoryRoom) => void;
 };
 
 function roomStateLabel(room: Room) {
-  return room.isActive ? "Operational" : "Under Repair";
+  return room.isActive ? "Operational" : "Disabled";
 }
 
 function capacityLabel(capacity: number) {
   return `${capacity} ${capacity === 1 ? "student" : "students"}`;
 }
 
-export default function InventoryRoomCard({ room }: InventoryRoomCardProps) {
+export default function InventoryRoomCard({ room, onEdit, onDelete }: InventoryRoomCardProps) {
   const isOperational = room.isActive;
 
   return (
@@ -49,6 +51,7 @@ export default function InventoryRoomCard({ room }: InventoryRoomCardProps) {
               className="text-muted-foreground hover:text-content"
               size="icon-sm"
               variant="ghost"
+              onClick={() => onEdit(room)}
             >
               <Pen aria-hidden="true" />
             </Button>
@@ -57,6 +60,7 @@ export default function InventoryRoomCard({ room }: InventoryRoomCardProps) {
               className="text-muted-foreground hover:text-destructive"
               size="icon-sm"
               variant="ghost"
+              onClick={() => onDelete(room)}
             >
               <Trash2 aria-hidden="true" />
             </Button>
@@ -93,8 +97,7 @@ export default function InventoryRoomCard({ room }: InventoryRoomCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="mt-auto flex items-center justify-between border-t border-border bg-background px-4 py-3">
-        <span className="text-xs font-medium text-muted-foreground">Maintenance Mode</span>
+      <CardFooter className="mt-auto flex items-center justify-end border-t border-border bg-background px-4 py-3">
         <Button
           className={cn(
             "h-8 px-3 text-xs font-semibold shadow-none",

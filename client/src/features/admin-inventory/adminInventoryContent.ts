@@ -4,6 +4,11 @@ export type InventoryRoom = Room & {
   tags: string[];
 };
 
+export type InventoryAmenityOption = {
+  id: string;
+  label: string;
+};
+
 export const inventoryHeader = {
   title: "Room Inventory",
   subtitle: "Manage physical spaces, capacity, and maintenance status.",
@@ -13,6 +18,17 @@ export const inventorySyncMessage = {
   title: "Inventory synced successfully.",
   description: "All room records reflect the latest capacity and maintenance state.",
 } as const;
+
+export const inventoryAmenityOptions: InventoryAmenityOption[] = [
+  { id: "projector", label: "Projector" },
+  { id: "ac", label: "AC" },
+  { id: "stage", label: "Stage" },
+  { id: "power-outlets", label: "Power Outlets" },
+  { id: "whiteboard", label: "Whiteboard" },
+  { id: "pa-system", label: "PA System" },
+  { id: "high-end-pcs", label: "High-end PCs" },
+  { id: "video-conf", label: "Video Conf" },
+];
 
 export const inventoryRooms: InventoryRoom[] = [
   {
