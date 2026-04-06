@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import PanelFrame from "@/components/ui/panel-frame";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Filter, iconProps } from "@/lib/icons";
@@ -24,7 +25,7 @@ function SectionLabel({ children }: { children: string }) {
 
 export default function FilterPanel() {
   return (
-    <aside className="flex w-full flex-col bg-sidebar lg:min-h-full lg:w-[272px] lg:shrink-0 lg:self-stretch">
+    <PanelFrame as="aside" variant="sidebar">
       <div className="flex items-center justify-between px-6 py-5">
         <span className="flex items-center gap-2 text-sm font-semibold text-content">
           <Filter {...iconProps} aria-hidden="true" />
@@ -106,6 +107,6 @@ export default function FilterPanel() {
           Apply Filters
         </Button>
       </div>
-    </aside>
+    </PanelFrame>
   );
 }
