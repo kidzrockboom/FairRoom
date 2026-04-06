@@ -22,7 +22,7 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-export default function SearchRoomsFilterPanel() {
+export default function FilterPanel() {
   return (
     <aside className="flex w-full flex-col bg-sidebar lg:min-h-full lg:w-[272px] lg:shrink-0 lg:self-stretch">
       <div className="flex items-center justify-between px-6 py-5">

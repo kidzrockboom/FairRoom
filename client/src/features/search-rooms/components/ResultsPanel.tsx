@@ -1,34 +1,17 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  Monitor,
-  Search,
-  Users,
-  Wifi,
-  X,
-  iconProps,
-} from "@/lib/icons";
-import { cn } from "@/lib/utils";
+import type { RoomSearchItem } from "@/api/contracts";
+import { ChevronLeft, ChevronRight, Search, X } from "@/lib/icons";
+import RoomCard from "./RoomCard";
 
-type PlaceholderRoom = {
-  id: string;
-  name: string;
-  location: string;
-  capacity: number;
-  available: boolean;
-};
-
-const PLACEHOLDER_ROOMS: PlaceholderRoom[] = [
-  { id: "1", name: "Room 302",        location: "Level 3, East Wing",   capacity: 4,  available: true  },
-  { id: "2", name: "Seminar Room A",  location: "Level 1, Main Hall",   capacity: 20, available: false },
-  { id: "3", name: "Quiet Pod 04",    location: "Library, North",       capacity: 1,  available: true  },
-  { id: "4", name: "Lab 210",         location: "Level 2, West Wing",   capacity: 15, available: true  },
-  { id: "5", name: "Meeting Room 09", location: "Level 4, Center",      capacity: 6,  available: true  },
-  { id: "6", name: "Collab Space 1",  location: "Student Hub",          capacity: 10, available: false },
+const PLACEHOLDER_ROOMS: RoomSearchItem[] = [
+  { id: "1", roomCode: "RM-302", name: "Room 302",        location: "Level 3, East Wing",   capacity: 4,  isAvailableForRequestedRange: true  },
+  { id: "2", roomCode: "RM-201", name: "Seminar Room A",  location: "Level 1, Main Hall",   capacity: 20, isAvailableForRequestedRange: false },
+  { id: "3", roomCode: "QP-04",   name: "Quiet Pod 04",    location: "Library, North",       capacity: 1,  isAvailableForRequestedRange: true  },
+  { id: "4", roomCode: "LAB-210", name: "Lab 210",         location: "Level 2, West Wing",   capacity: 15, isAvailableForRequestedRange: true  },
+  { id: "5", roomCode: "MR-09",   name: "Meeting Room 09", location: "Level 4, Center",      capacity: 6,  isAvailableForRequestedRange: true  },
+  { id: "6", roomCode: "CS-01",   name: "Collab Space 1",  location: "Student Hub",          capacity: 10, isAvailableForRequestedRange: false },
 ];
 
 const ACTIVE_FILTER_CHIPS = [
@@ -37,58 +20,7 @@ const ACTIVE_FILTER_CHIPS = [
   { id: "time",     label: "Time: 9AM – 5PM"  },
 ];
 
-const CARD_BODY_TEXT =
-  "Equipped with ergonomic seating and high-speed internal network";
-
-function RoomCard({ room }: { room: PlaceholderRoom }) {
-  return (
-    <article className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="text-[15px] font-semibold leading-snug text-content">
-          {room.name}
-        </h3>
-        <Badge
-          variant="outline"
-          className={cn(
-            "shrink-0 rounded-full border-transparent px-2.5 py-0.5 text-xs font-semibold",
-            room.available
-              ? "bg-success-subtle text-success"
-              : "bg-[#f2f3f7] text-muted-foreground",
-          )}
-        >
-          {room.available ? "Available" : "Busy"}
-        </Badge>
-      </div>
-
-      <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <MapPin {...iconProps} aria-hidden="true" className="shrink-0" />
-        {room.location}
-      </p>
-
-      <div className="flex items-center gap-3 text-sm font-medium text-content">
-        <span className="flex items-center gap-1.5">
-          <Users {...iconProps} aria-hidden="true" />
-          Cap: {room.capacity}
-        </span>
-        <Wifi  {...iconProps} aria-hidden="true" className="text-muted-foreground" />
-        <Monitor {...iconProps} aria-hidden="true" className="text-muted-foreground" />
-      </div>
-
-      <p className="text-sm leading-relaxed text-muted-foreground">{CARD_BODY_TEXT}</p>
-
-      <div className="mt-auto grid grid-cols-2 gap-2 pt-1">
-        <Button variant="outline" size="sm" className="h-9 text-sm text-content">
-          Details
-        </Button>
-        <Button size="sm" className="h-9 text-sm">
-          Book Now
-        </Button>
-      </div>
-    </article>
-  );
-}
-
-export default function SearchRoomsResultsPanel() {
+export default function ResultsPanel() {
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
