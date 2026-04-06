@@ -1,124 +1,69 @@
 import {
-  analyticsSummary,
-  performanceRows,
-  usageAnomalies,
-  usageDistribution,
-} from "@/data/adminMockData";
-import "../../styles/admin.css";
+  analyticsChart,
+  analyticsHeader,
+  analyticsInsights,
+  analyticsKpis,
+  analyticsPerformance,
+} from "@/features/admin-analytics/adminAnalyticsContent";
+import AnalyticsKpiGrid from "@/features/admin-analytics/components/AnalyticsKpiGrid";
+import AnalyticsPerformanceTable from "@/features/admin-analytics/components/AnalyticsPerformanceTable";
+import AnalyticsSystemInsights from "@/features/admin-analytics/components/AnalyticsSystemInsights";
+import AnalyticsUsageDistribution from "@/features/admin-analytics/components/AnalyticsUsageDistribution";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar, Download, Filter, Info, iconProps } from "@/lib/icons";
 
 function AdminAnalyticsPage() {
-  const maxHours = Math.max(...usageDistribution.map((x) => x.hours), 1);
-
   return (
-    <section className="admin-analytics-page">
-      <header className="analytics-head">
-        <div>
-          <h1>{analyticsSummary.title}</h1>
-          <p>{analyticsSummary.subtitle}</p>
+    <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
+      <header className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="space-y-1">
+          <h1 className="font-heading text-[30px] font-bold tracking-tight text-content">
+            {analyticsHeader.title}
+          </h1>
+          <p className="max-w-[520px] text-sm text-muted-foreground">
+            {analyticsHeader.subtitle}
+          </p>
         </div>
 
-        <div className="analytics-head-actions">
-          <span className="inline-note">{analyticsSummary.note}</span>
-          <button className="btn-secondary" type="button">{analyticsSummary.dateRangeLabel}</button>
+        <div className="flex flex-col gap-2 xl:items-end">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="outline"
+              className="rounded-full border-border bg-surface px-3 py-1 text-[11px] font-semibold text-muted-foreground shadow-none"
+            >
+              <Info {...iconProps} aria-hidden="true" />
+              {analyticsHeader.inlineNote}
+            </Badge>
+
+            <Button variant="outline" className="h-9 gap-2 px-3 text-sm font-semibold shadow-none">
+              <Calendar data-icon="inline-start" />
+              {analyticsHeader.dateRangeLabel}
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" className="h-9 gap-2 px-3 text-sm font-semibold shadow-none">
+              <Filter data-icon="inline-start" />
+              Filters
+            </Button>
+            <Button className="h-9 gap-2 px-3 text-sm font-semibold">
+              <Download data-icon="inline-start" />
+              Export PDF
+            </Button>
+          </div>
         </div>
       </header>
 
-      <div className="analytics-toolbar">
-        <button className="btn-secondary" type="button">Filters</button>
-        <button className="btn-primary" type="button">Export PDF</button>
+      <AnalyticsKpiGrid items={analyticsKpis} />
+
+      <AnalyticsUsageDistribution chart={analyticsChart} />
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <AnalyticsPerformanceTable performance={analyticsPerformance} />
+        <AnalyticsSystemInsights insights={analyticsInsights} />
       </div>
-
-      <div className="analytics-kpis">
-        <article className="kpi-card">
-          <small>Most Popular Room</small>
-          <h3>{analyticsSummary.mostPopularRoom}</h3>
-          <p>{analyticsSummary.mostPopularDelta}</p>
-        </article>
-        <article className="kpi-card">
-          <small>Avg Booking Duration</small>
-          <h3>{analyticsSummary.avgBookingDuration}</h3>
-          <p>{analyticsSummary.avgBookingDurationNote}</p>
-        </article>
-        <article className="kpi-card">
-          <small>No-Show Rate</small>
-          <h3>{analyticsSummary.noShowRate}</h3>
-          <p>{analyticsSummary.noShowRateNote}</p>
-        </article>
-      </div>
-
-      <section className="usage-section cardish">
-        <div className="usage-head">
-          <div>
-            <h2>{analyticsSummary.usageDistributionTitle}</h2>
-            <p>{analyticsSummary.usageDistributionSubtitle}</p>
-          </div>
-          <span className="campus-chip">{analyticsSummary.campusGroupLabel}</span>
-        </div>
-
-        <div className="bars-wrap">
-          {usageDistribution.map((item) => (
-            <div key={item.room} className="bar-col">
-              <div
-                className="bar"
-                style={{ height: `${(item.hours / maxHours) * 260}px` }}
-                title={`${item.room}: ${item.hours}h`}
-              />
-              <small>{item.room}</small>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="analytics-bottom-grid">
-        <section className="cardish">
-          <div className="perf-head">
-            <h2>{analyticsSummary.performanceTitle}</h2>
-            <span className="danger-inline">{analyticsSummary.performanceInlineNote}</span>
-          </div>
-
-          <div className="perf-table">
-            <div className="perf-row perf-row-head">
-              <span>Room Identifier</span>
-              <span>Total Usage</span>
-              <span>Occupancy %</span>
-              <span>Efficiency</span>
-            </div>
-
-            {performanceRows.map((row) => (
-              <div className="perf-row" key={row.roomIdentifier}>
-                <span>{row.roomIdentifier}</span>
-                <span>{row.totalUsage}</span>
-                <span>{row.occupancyPct}%</span>
-                <span>
-                  <i className={`eff-tag ${row.efficiency.toLowerCase()}`}>{row.efficiency}</i>
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <aside className="insights-col">
-          <section className="cardish">
-            <h2>{analyticsSummary.systemInsightsTitle}</h2>
-
-            <div className="recommend-box">
-              <h3>{analyticsSummary.systemRecommendationTitle}</h3>
-              <p>{analyticsSummary.systemRecommendationText}</p>
-              <button className="linkish" type="button">
-                {analyticsSummary.systemRecommendationLink}
-              </button>
-            </div>
-
-            <div className="anomaly-list">
-              <h4>Usage Anomalies</h4>
-              {usageAnomalies.map((a) => (
-                <p key={a.id}>• {a.text}</p>
-              ))}
-            </div>
-          </section>
-        </aside>
-      </div>
-    </section>
+    </div>
   );
 }
 
