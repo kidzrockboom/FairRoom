@@ -3,12 +3,15 @@ import { Button } from "@/components/ui/button";
 import type { Room } from "@/api/contracts";
 import { MapPin, Users, iconProps } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 type RoomCardProps = {
   room: Room;
 };
 
 export default function RoomCard({ room }: RoomCardProps) {
+  const navigate = useNavigate();
+
   return (
     <article className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
       <div className="flex items-start justify-between gap-2">
@@ -55,10 +58,10 @@ export default function RoomCard({ room }: RoomCardProps) {
       </div>
 
       <div className="mt-auto grid grid-cols-2 gap-2 pt-1">
-        <Button variant="outline" size="sm" className="h-9 text-sm text-content">
+        <Button variant="outline" size="sm" className="h-9 text-sm text-content" onClick={() => navigate(`/rooms/${room.id}`)}>
           Details
         </Button>
-        <Button size="sm" className="h-9 text-sm">
+        <Button size="sm" className="h-9 text-sm" onClick={() => navigate(`/rooms/${room.id}`)}>
           Book Now
         </Button>
       </div>

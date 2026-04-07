@@ -3,7 +3,6 @@ import {
   accountActivities,
   bookings,
   reminders,
-  roomAvailabilityTemplates,
   rooms,
   users,
 } from "@/data/mockData";
@@ -11,20 +10,19 @@ import type {
   AccountActivityListResponse,
   AccountState,
   AccountStatusResponse,
-  AvailabilityWindow,
+  Booking,
   BookingListResponse,
   BookingScope,
-  BookingSummary,
   CreateBookingRequest,
   ReminderListResponse,
   ReminderStatus,
   Room,
-  RoomAvailabilityResponse,
+  RoomBookingsResponse,
   RoomSearchResponse,
   SearchRoomsParams,
 } from "./contracts/index";
 
-const DEFAULT_API_URL = "https://oas6fd22a2b268a.free.beeceptor.com";
+const DEFAULT_API_URL = "https://oasf2ae7ab0f548.free.beeceptor.com";
 const API_URL = import.meta.env.VITE_API_URL?.trim() || DEFAULT_API_URL;
 const CURRENT_USER_ID = "9b3f5d2e-4b8e-4a16-9e1f-2baf3a9e9d01";
 
@@ -51,32 +49,6 @@ const deriveAccountState = (activeStrikes: number): AccountState => {
   return "good";
 };
 
-const parseRequestedRange = (startsAt?: string, endsAt?: string) => {
-  if (!startsAt || !endsAt) return null;
-  const start = new Date(startsAt).getHours();
-  const end = new Date(endsAt).getHours();
-  return { start, end };
-};
-
-const deriveAvailabilityWindows = (
-  roomId: string,
-  startsAt: string,
-  endsAt: string,
-): AvailabilityWindow[] => {
-  const range = parseRequestedRange(startsAt, endsAt);
-  if (range == null) return [];
-
-  const availability = roomAvailabilityTemplates[roomId] ?? [];
-  const day = startsAt.slice(0, 10);
-
-  return availability
-    .filter((slot) => slot.hour >= range.start && slot.hour < range.end)
-    .map((slot) => ({
-      startsAt: new Date(`${day}T${String(slot.hour).padStart(2, "0")}:00:00`).toISOString(),
-      endsAt: new Date(`${day}T${String(slot.hour + 1).padStart(2, "0")}:00:00`).toISOString(),
-      status: slot.status,
-    }));
-};
 
 const withFallback = async <T>(request: () => Promise<T>, fallback: () => T | Promise<T>) => {
   try {
@@ -195,32 +167,27 @@ export const fairroomApi = {
     );
   },
 
-  async getRoomAvailability(roomId: string, startsAt: string, endsAt: string): Promise<RoomAvailabilityResponse> {
+  async getRoomBookings(roomId: string, date: string): Promise<RoomBookingsResponse> {
     return withFallback(
       async () => {
-        const { data } = await client.get<RoomAvailabilityResponse>(`/rooms/${roomId}/availability`, {
-          params: { startsAt, endsAt },
+        const { data } = await client.get<RoomBookingsResponse>(`/rooms/${roomId}/bookings`, {
+          params: { date },
         });
         return data;
       },
       () => {
-        const room = rooms.find((candidate) => candidate.id === roomId);
-        if (!room) throw new Error("Room not found");
-
-        return {
-          roomId,
-          requestedStartsAt: startsAt,
-          requestedEndsAt: endsAt,
-          windows: deriveAvailabilityWindows(room.id, startsAt, endsAt),
-        };
+        const items = bookings
+          .filter((b) => b.roomId === roomId && b.startsAt.slice(0, 10) === date)
+          .map(({ userId, ...booking }) => booking);
+        return { items };
       },
     );
   },
 
-  async createBooking(payload: CreateBookingRequest): Promise<BookingSummary> {
+  async createBooking(payload: CreateBookingRequest): Promise<Booking> {
     return withFallback(
       async () => {
-        const { data } = await client.post<BookingSummary>("/bookings", payload, {
+        const { data } = await client.post<Booking>("/bookings", payload, {
           headers: authHeaders(),
         });
         return data;

@@ -1,6 +1,6 @@
 import type {
   AccountActivityItem,
-  BookingSummary,
+  Booking,
   Reminder,
   Room,
   UserProfile,
@@ -10,24 +10,13 @@ export type MockUser = UserProfile & {
   activeStrikes: number;
 };
 
-export type MockBookingSummary = BookingSummary & {
+export type MockBooking = Booking & {
   userId: string;
-};
-
-export type MockAvailabilityTemplate = {
-  hour: number;
-  status: "available" | "booked";
 };
 
 const CURRENT_USER_ID = "9b3f5d2e-4b8e-4a16-9e1f-2baf3a9e9d01";
 
 const addHours = (base: Date, hours: number) => new Date(base.getTime() + hours * 60 * 60 * 1000);
-
-const createAvailabilityTemplate = (bookedHours: number[]): MockAvailabilityTemplate[] =>
-  Array.from({ length: 24 }, (_, hour) => ({
-    hour,
-    status: bookedHours.includes(hour) ? "booked" : "available",
-  }));
 
 const bookingStart = (() => {
   const value = addHours(new Date(), 1);
@@ -68,12 +57,6 @@ export const rooms: Room[] = [
   },
 ];
 
-export const roomAvailabilityTemplates: Record<string, MockAvailabilityTemplate[]> = {
-  room_01: createAvailabilityTemplate([9, 12, 13, 18]),
-  room_02: createAvailabilityTemplate([10, 11, 14, 15]),
-  room_03: createAvailabilityTemplate([8, 16, 17]),
-};
-
 export const users: MockUser[] = [
   {
     id: CURRENT_USER_ID,
@@ -85,7 +68,7 @@ export const users: MockUser[] = [
   },
 ];
 
-export const bookings: MockBookingSummary[] = [
+export const bookings: MockBooking[] = [
   {
     id: "bk_1001",
     roomId: "room_03",

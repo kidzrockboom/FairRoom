@@ -29,13 +29,7 @@ export interface Amenity {
   label: string;
 }
 
-export interface AvailabilityWindow {
-  startsAt: string;
-  endsAt: string;
-  status: "available" | "booked";
-}
-
-export interface BookingSummary {
+export interface Booking {
   id: string;
   roomId: string;
   roomCode: string;

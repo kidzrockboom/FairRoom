@@ -174,7 +174,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccountActivityItem'
-    BookingSummary:
+    Booking:
       type: object
       required:
         [id, roomId, roomCode, roomName, startsAt, endsAt, status, checkedIn, createdAt, updatedAt]
@@ -219,7 +219,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/BookingSummary'
+            $ref: '#/components/schemas/Booking'
         page:
           type: integer
           example: 1
@@ -355,36 +355,14 @@ components:
             Populated only on search results. Indicates whether the room has no
             conflicting bookings for the requested startsAt/endsAt window.
           example: true
-    AvailabilityWindow:
+    RoomBookingsResponse:
       type: object
-      required: [startsAt, endsAt, status]
+      required: [items]
       properties:
-        startsAt:
-          type: string
-          format: date-time
-        endsAt:
-          type: string
-          format: date-time
-        status:
-          type: string
-          enum: [available, booked]
-    RoomAvailabilityResponse:
-      type: object
-      required: [roomId, requestedStartsAt, requestedEndsAt, windows]
-      properties:
-        roomId:
-          type: string
-          example: room_01
-        requestedStartsAt:
-          type: string
-          format: date-time
-        requestedEndsAt:
-          type: string
-          format: date-time
-        windows:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/AvailabilityWindow'
+            $ref: '#/components/schemas/Booking'
     CreateBookingRequest:
       type: object
       required: [roomId, startsAt, endsAt]
@@ -889,25 +867,30 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /rooms/{roomId}/availability:
+  /rooms/{roomId}/bookings:
     get:
       tags: [Rooms]
-      summary: Get derived availability windows for a room
+      summary: Get bookings for a room on a given date
       parameters:
         - in: path
           name: roomId
           required: true
           schema:
             type: string
-        - $ref: '#/components/parameters/StartsAt'
-        - $ref: '#/components/parameters/EndsAt'
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+          description: ISO date (YYYY-MM-DD) to filter bookings for
       responses:
         '200':
-          description: Derived room availability
+          description: Bookings for the room on the requested date
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoomAvailabilityResponse'
+                $ref: '#/components/schemas/RoomBookingsResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -930,7 +913,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookingSummary'
+                $ref: '#/components/schemas/Booking'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -985,7 +968,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookingSummary'
+                $ref: '#/components/schemas/Booking'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1019,7 +1002,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookingSummary'
+                $ref: '#/components/schemas/Booking'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

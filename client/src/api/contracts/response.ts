@@ -1,8 +1,7 @@
 import type {
   AccountActivityItem,
   AccountState,
-  AvailabilityWindow,
-  BookingSummary,
+  Booking,
   Reminder,
   Room,
 } from "./domain";
@@ -24,15 +23,12 @@ export interface RoomSearchResponse {
   total: number;
 }
 
-export interface RoomAvailabilityResponse {
-  roomId: string;
-  requestedStartsAt: string;
-  requestedEndsAt: string;
-  windows: AvailabilityWindow[];
+export interface RoomBookingsResponse {
+  items: Booking[];
 }
 
 export interface BookingListResponse {
-  items: BookingSummary[];
+  items: Booking[];
   page: number;
   pageSize: number;
   total: number;

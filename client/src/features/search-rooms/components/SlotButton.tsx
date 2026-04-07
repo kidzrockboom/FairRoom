@@ -9,9 +9,10 @@ export type TimeSlot = {
 
 type SlotButtonProps = {
   slot: TimeSlot;
+  onClick?: () => void;
 };
 
-export default function SlotButton({ slot }: SlotButtonProps) {
+export default function SlotButton({ slot, onClick }: SlotButtonProps) {
   const isReserved = slot.status === "reserved";
   const isSelected = slot.status === "selected";
 
@@ -19,6 +20,7 @@ export default function SlotButton({ slot }: SlotButtonProps) {
     <button
       type="button"
       disabled={isReserved}
+      onClick={onClick}
       className={cn(
         "relative flex flex-col items-center gap-0.5 rounded-lg border py-3 px-2 text-center transition-colors",
         isSelected
