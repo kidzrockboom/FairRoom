@@ -1,7 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, Users, iconProps } from "@/lib/icons";
+import { useConfirmBookingContext } from "@/features/confirm-booking/context";
+import { formatBookingDate, formatSlotRange } from "@/features/confirm-booking/mappers";
 
 export default function ConfirmBookingSummary() {
+  const { room, date, slotHour } = useConfirmBookingContext();
+
+  if (!room) return null;
+
   return (
     <section className="overflow-hidden rounded-card border border-border bg-surface">
       <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/35 px-4 py-3">
@@ -9,7 +15,7 @@ export default function ConfirmBookingSummary() {
           Reservation Summary
         </p>
         <Badge className="rounded-full bg-muted/75 px-2.5 py-0.5 text-[11px] font-semibold text-content shadow-none">
-          Draft
+          Pending Confirmation
         </Badge>
       </div>
 
@@ -20,8 +26,8 @@ export default function ConfirmBookingSummary() {
               <MapPin {...iconProps} aria-hidden="true" className="text-muted-foreground" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-content">Collaborative Study Suite 101</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Library, 2nd Floor - East Wing</p>
+              <p className="text-sm font-semibold text-content">{room.name}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{room.location}</p>
             </div>
           </div>
 
@@ -30,10 +36,10 @@ export default function ConfirmBookingSummary() {
               <Calendar {...iconProps} aria-hidden="true" className="text-muted-foreground" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-content">Monday, Oct 24, 2023</p>
+              <p className="text-sm font-semibold text-content">{formatBookingDate(date)}</p>
               <p className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1.5">
                 <Users {...iconProps} aria-hidden="true" className="text-muted-foreground" />
-                Capacity: 4-6 People
+                Capacity: {room.capacity} {room.capacity === 1 ? "Person" : "Persons"}
               </p>
             </div>
           </div>
@@ -43,9 +49,11 @@ export default function ConfirmBookingSummary() {
           <div className="mx-auto flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Clock {...iconProps} aria-hidden="true" />
           </div>
-          <p className="mt-3 text-[22px] font-bold leading-tight text-primary">10:00 AM - 11:30 AM</p>
+          <p className="mt-3 text-[22px] font-bold leading-tight text-primary">
+            {formatSlotRange(slotHour)}
+          </p>
           <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary/70">
-            Duration: 90 mins
+            Duration: 1 Hour
           </p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { AlertTriangle, Calendar as CalendarIcon, CheckCircle, Clock, iconProps 
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useRoomDetailsContext } from "@/features/room-details/context";
+import { SLOT_START } from "@/features/room-details/mappers";
 import SlotButton, { type TimeSlot } from "./SlotButton";
 
 function formatDisplayDate(iso: string): string {
@@ -129,10 +130,10 @@ export default function RoomAvailabilityPanel() {
         </div>
       </div>
 
-      {selectedSlot && room ? (
+      {selectedSlot && room && selectedSlotIndex !== null ? (
         <Link
           to="/bookings/confirm"
-          state={{ roomId: room.id, date, slotTime: selectedSlot.time }}
+          state={{ roomId: room.id, date, slotHour: SLOT_START + selectedSlotIndex }}
           className={buttonVariants({
             variant: "default",
             size: "default",

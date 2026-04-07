@@ -13,4 +13,6 @@ export interface CreateBookingRequest {
   roomId: string;
   startsAt: string;
   endsAt: string;
+  purpose: string;
+  expectedAttendees: number;
 }

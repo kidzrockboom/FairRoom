@@ -365,7 +365,7 @@ components:
             $ref: '#/components/schemas/Booking'
     CreateBookingRequest:
       type: object
-      required: [roomId, startsAt, endsAt]
+      required: [roomId, startsAt, endsAt, purpose, expectedAttendees]
       properties:
         roomId:
           type: string
@@ -377,7 +377,15 @@ components:
         endsAt:
           type: string
           format: date-time
-          example: '2026-04-02T16:00:00Z'
+          example: '2026-04-02T15:00:00Z'
+        purpose:
+          type: string
+          minLength: 5
+          example: Final year project group coordination
+        expectedAttendees:
+          type: integer
+          minimum: 1
+          example: 4
     UpdateBookingRequest:
       type: object
       required: [startsAt, endsAt]

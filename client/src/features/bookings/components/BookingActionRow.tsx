@@ -1,27 +1,31 @@
 import { Link } from "react-router-dom";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { useConfirmBookingContext } from "@/features/confirm-booking/context";
 
 export default function BookingActionRow() {
-  return (
-    <footer className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
-      <Link
-        to="/rooms/room_01"
-        className="text-sm font-semibold text-muted-foreground transition-colors hover:text-content"
-      >
-        Cancel and Go Back
-      </Link>
+  const { room, isSubmitting, submitError } = useConfirmBookingContext();
 
-      <div className="flex flex-wrap items-center gap-2">
+  return (
+    <footer className="flex flex-col gap-3 pt-1">
+      {submitError && (
+        <p className="text-sm text-destructive">{submitError}</p>
+      )}
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link
-          to="/bookings/reminder"
-          className={buttonVariants({
-            variant: "default",
-            size: "default",
-            className: "h-10 rounded px-4 text-sm font-semibold",
-          })}
+          to={room ? `/rooms/${room.id}` : "/search"}
+          className="text-sm font-semibold text-muted-foreground transition-colors hover:text-content"
         >
-          Confirm Booking
+          Cancel and Go Back
         </Link>
+
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="h-10 rounded px-4 text-sm font-semibold"
+        >
+          {isSubmitting ? "Confirming…" : "Confirm Booking"}
+        </Button>
       </div>
     </footer>
   );
