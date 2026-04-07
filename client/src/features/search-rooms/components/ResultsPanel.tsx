@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Empty from "@/components/ui/empty";
@@ -5,6 +6,7 @@ import ErrorBlock from "@/components/ui/error";
 import { Separator } from "@/components/ui/separator";
 import { ChevronLeft, ChevronRight, Search, X } from "@/lib/icons";
 import { useSearchRoomsContext } from "../context";
+import type { ActiveChip } from "../hooks/useSearchRooms";
 import RoomCard from "./RoomCard";
 import RoomCardSkeleton from "./RoomCardSkeleton";
 
@@ -16,7 +18,6 @@ export default function ResultsPanel() {
     totalRooms,
     isLoading,
     error,
-    search,
     sort,
     page,
     totalPages,
@@ -25,9 +26,26 @@ export default function ResultsPanel() {
     setSort,
     setPage,
     removeChip,
+    removeAmenity,
     resetFilters,
     retry,
   } = useSearchRoomsContext();
+
+  const handleRemoveChip = (chip: ActiveChip) => {
+    if (chip.kind === "filter") removeChip(chip.id);
+    else removeAmenity(chip.amenityId);
+  };
+
+  const [inputValue, setInputValue] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearch = (q: string) => {
+    setInputValue(q);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setSearch(q), 400);
+  };
+
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
 
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
@@ -50,8 +68,8 @@ export default function ResultsPanel() {
           />
           <input
             type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={inputValue}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search room name or ID..."
             className="h-10 w-full rounded-input border border-input bg-surface pl-9 pr-3 text-sm text-content placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
           />
@@ -66,16 +84,16 @@ export default function ResultsPanel() {
 
           {activeChips.map((chip) => (
             <Badge
-              key={chip.id}
+              key={chip.kind === "filter" ? chip.id : chip.amenityId}
               className="h-auto gap-1.5 rounded-full border border-border bg-muted-foreground/10 px-3 py-1.5 text-sm font-medium text-content"
               variant="outline"
             >
               {chip.label}
               <button
                 type="button"
-                aria-label={`Remove ${chip.label} filter`}
+                aria-label={`Remove ${chip.label}`}
                 className="rounded-full text-muted-foreground transition-colors hover:text-content"
-                onClick={() => removeChip(chip.id)}
+                onClick={() => handleRemoveChip(chip)}
               >
                 <X size={12} strokeWidth={2} aria-hidden="true" />
               </button>

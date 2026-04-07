@@ -24,7 +24,7 @@ import type {
   SearchRoomsParams,
 } from "./contracts/index";
 
-const DEFAULT_API_URL = "https://oasd5f85395cf35.free.beeceptor.com";
+const DEFAULT_API_URL = "https://oas6fd22a2b268a.free.beeceptor.com";
 const API_URL = import.meta.env.VITE_API_URL?.trim() || DEFAULT_API_URL;
 const CURRENT_USER_ID = "9b3f5d2e-4b8e-4a16-9e1f-2baf3a9e9d01";
 

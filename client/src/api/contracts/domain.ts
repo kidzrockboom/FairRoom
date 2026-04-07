@@ -20,6 +20,7 @@ export interface Room {
   capacity: number;
   isActive: boolean;
   createdAt: string;
+  amenities?: Amenity[];
   isAvailableForRequestedRange?: boolean;
 }
 

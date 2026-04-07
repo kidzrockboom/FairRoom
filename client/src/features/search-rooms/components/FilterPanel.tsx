@@ -87,13 +87,23 @@ export default function FilterPanel() {
         <section className="space-y-3 px-6 py-4">
           <SectionLabel>Amenities</SectionLabel>
           <div className="flex flex-col gap-2.5">
-            {AMENITY_OPTIONS.map(({ id, label, defaultChecked }) => (
+            {AMENITY_OPTIONS.map(({ id, label }) => (
               <label
                 key={id}
                 htmlFor={id}
                 className="flex cursor-pointer items-center gap-2.5 text-sm text-content"
               >
-                <Checkbox id={id} defaultChecked={defaultChecked} />
+                <Checkbox
+                  id={id}
+                  checked={filters.amenityIds.includes(id)}
+                  onCheckedChange={(checked) =>
+                    patchFilters({
+                      amenityIds: checked
+                        ? [...filters.amenityIds, id]
+                        : filters.amenityIds.filter((a) => a !== id),
+                    })
+                  }
+                />
                 {label}
               </label>
             ))}

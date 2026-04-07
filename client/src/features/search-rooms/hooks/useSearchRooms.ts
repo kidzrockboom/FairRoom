@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 import type { Room } from "@/api/contracts";
+import { AMENITY_OPTIONS } from "../content";
 import { toSearchParams } from "../mappers";
 import { fetchRooms } from "../roomSearchService";
 import type { Filters } from "../schemas";
 
 type SortKey = "capacity-asc" | "capacity-desc" | "name-asc";
+
+export type ActiveChip =
+  | { kind: "filter"; id: "date" | "capacity" | "time"; label: string }
+  | { kind: "amenity"; amenityId: string; label: string };
 
 const PAGE_SIZE = 9;
 
@@ -12,6 +17,7 @@ const DEFAULT_FILTERS: Filters = {
   date: "",
   capacity: null,
   timeRange: [0, 24],
+  amenityIds: [],
 };
 
 type State = {
@@ -28,6 +34,7 @@ type Action =
   | { type: "PATCH_FILTERS"; payload: Partial<Filters> }
   | { type: "RESET" }
   | { type: "REMOVE_CHIP"; payload: "date" | "capacity" | "time" }
+  | { type: "REMOVE_AMENITY"; payload: string }
   | { type: "SET_SEARCH"; payload: string }
   | { type: "SET_SORT"; payload: SortKey }
   | { type: "SET_PAGE"; payload: number }
@@ -60,6 +67,16 @@ function reducer(state: State, action: Action): State {
       if (action.payload === "time") updates.timeRange = [0, 24];
       return { ...state, filters: { ...state.filters, ...updates }, page: 1 };
     }
+
+    case "REMOVE_AMENITY":
+      return {
+        ...state,
+        filters: {
+          ...state.filters,
+          amenityIds: state.filters.amenityIds.filter((id) => id !== action.payload),
+        },
+        page: 1,
+      };
 
     case "SET_SEARCH":
       return { ...state, search: action.payload, page: 1 };
@@ -107,14 +124,23 @@ export function useSearchRooms() {
     return () => {
       cancelled = true;
     };
-  }, [state.filters, state.search]);
+  }, [state.filters.date, state.filters.capacity, state.filters.timeRange, state.search]);
+
+  const amenityFiltered = useMemo(() => {
+    if (state.filters.amenityIds.length === 0) return state.rooms;
+    return state.rooms.filter(
+      (room) =>
+        room.amenities != null &&
+        state.filters.amenityIds.every((id) => room.amenities!.some((a) => a.id === id)),
+    );
+  }, [state.rooms, state.filters.amenityIds]);
 
   const sorted = useMemo(() => {
-    const copy = [...state.rooms];
+    const copy = [...amenityFiltered];
     if (state.sort === "capacity-asc") return copy.sort((a, b) => a.capacity - b.capacity);
     if (state.sort === "capacity-desc") return copy.sort((a, b) => b.capacity - a.capacity);
     return copy.sort((a, b) => a.name.localeCompare(b.name));
-  }, [state.rooms, state.sort]);
+  }, [amenityFiltered, state.sort]);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(sorted.length / PAGE_SIZE)), [sorted]);
 
@@ -124,13 +150,13 @@ export function useSearchRooms() {
   }, [sorted, state.page]);
 
   const activeChips = useMemo(() => {
-    const chips: Array<{ id: "date" | "capacity" | "time"; label: string }> = [];
+    const chips: ActiveChip[] = [];
 
     if (state.filters.date) {
-      chips.push({ id: "date", label: `Date: ${state.filters.date}` });
+      chips.push({ kind: "filter", id: "date", label: `Date: ${state.filters.date}` });
     }
     if (state.filters.capacity !== null) {
-      chips.push({ id: "capacity", label: `Capacity: ${state.filters.capacity}+` });
+      chips.push({ kind: "filter", id: "capacity", label: `Capacity: ${state.filters.capacity}+` });
     }
     const [start, end] = state.filters.timeRange;
     if (start !== 0 || end !== 24) {
@@ -139,8 +165,12 @@ export function useSearchRooms() {
         const hour = h % 12 === 0 ? 12 : h % 12;
         return `${hour}${suffix}`;
       };
-      chips.push({ id: "time", label: `Time: ${fmt(start)} – ${fmt(end)}` });
+      chips.push({ kind: "filter", id: "time", label: `Time: ${fmt(start)} – ${fmt(end)}` });
     }
+    state.filters.amenityIds.forEach((amenityId) => {
+      const option = AMENITY_OPTIONS.find((a) => a.id === amenityId);
+      if (option) chips.push({ kind: "amenity", amenityId, label: option.label });
+    });
 
     return chips;
   }, [state.filters]);
@@ -153,6 +183,10 @@ export function useSearchRooms() {
   const resetFilters = useCallback(() => dispatch({ type: "RESET" }), []);
   const removeChip = useCallback(
     (id: "date" | "capacity" | "time") => dispatch({ type: "REMOVE_CHIP", payload: id }),
+    [],
+  );
+  const removeAmenity = useCallback(
+    (amenityId: string) => dispatch({ type: "REMOVE_AMENITY", payload: amenityId }),
     [],
   );
   const setSearch = useCallback((q: string) => dispatch({ type: "SET_SEARCH", payload: q }), []);
@@ -174,6 +208,7 @@ export function useSearchRooms() {
     patchFilters,
     resetFilters,
     removeChip,
+    removeAmenity,
     setSearch,
     setSort,
     setPage,

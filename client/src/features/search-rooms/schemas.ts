@@ -6,6 +6,7 @@ export const filterSchema = z.object({
   timeRange: z
     .tuple([z.number(), z.number()])
     .refine(([start, end]) => start < end, "Start time must be before end time"),
+  amenityIds: z.array(z.string()),
 });
 
 export type Filters = z.infer<typeof filterSchema>;

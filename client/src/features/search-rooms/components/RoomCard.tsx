@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Room } from "@/api/contracts";
-import { MapPin, Monitor, Users, Wifi, iconProps } from "@/lib/icons";
+import { MapPin, Users, iconProps } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 type RoomCardProps = {
@@ -33,15 +33,26 @@ export default function RoomCard({ room }: RoomCardProps) {
         {room.location}
       </p>
 
-      <div className="flex items-center gap-3 text-sm font-medium text-content">
-        <span className="flex items-center gap-1.5">
+      <div className="flex flex-col gap-2">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-content">
           <Users {...iconProps} aria-hidden="true" />
           Cap: {room.capacity}
         </span>
-        <Wifi    {...iconProps} aria-hidden="true" className="text-muted-foreground" />
-        <Monitor {...iconProps} aria-hidden="true" className="text-muted-foreground" />
-      </div>
 
+        {room.amenities && room.amenities.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {room.amenities.map((amenity) => (
+              <Badge
+                key={amenity.id}
+                variant="outline"
+                className="rounded-full border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+              >
+                {amenity.label}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="mt-auto grid grid-cols-2 gap-2 pt-1">
         <Button variant="outline" size="sm" className="h-9 text-sm text-content">

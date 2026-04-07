@@ -1,4 +1,4 @@
-import { currentUser } from "@/data/sessionMock";
+import { currentUser } from "../../data/sessionMock";
 
 function TopNavbar() {
   const roleLabel = currentUser?.role ? currentUser.role.toUpperCase() : "STUDENT";
