@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { RoomSearchItem } from "@/api/contracts";
+import type { Room } from "@/api/contracts";
 import { MapPin, Monitor, Users, Wifi, iconProps } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 type RoomCardProps = {
-  room: RoomSearchItem;
+  room: Room;
 };
 
 export default function RoomCard({ room }: RoomCardProps) {
@@ -42,9 +42,6 @@ export default function RoomCard({ room }: RoomCardProps) {
         <Monitor {...iconProps} aria-hidden="true" className="text-muted-foreground" />
       </div>
 
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        Equipped with ergonomic seating and high-speed internal network
-      </p>
 
       <div className="mt-auto grid grid-cols-2 gap-2 pt-1">
         <Button variant="outline" size="sm" className="h-9 text-sm text-content">

@@ -20,10 +20,9 @@ import type {
   ReminderStatus,
   Room,
   RoomAvailabilityResponse,
-  RoomSearchItem,
   RoomSearchResponse,
   SearchRoomsParams,
-} from "./contracts";
+} from "./contracts/index";
 
 const DEFAULT_API_URL = "https://oasd5f85395cf35.free.beeceptor.com";
 const API_URL = import.meta.env.VITE_API_URL?.trim() || DEFAULT_API_URL;
@@ -57,28 +56,6 @@ const parseRequestedRange = (startsAt?: string, endsAt?: string) => {
   const start = new Date(startsAt).getHours();
   const end = new Date(endsAt).getHours();
   return { start, end };
-};
-
-const mapRoomSearchItem = (
-  room: (typeof rooms)[number],
-  requestedRange: { start: number; end: number } | null | undefined,
-): RoomSearchItem => {
-  const availability = roomAvailabilityTemplates[room.id] ?? [];
-  const isAvailableForRequestedRange =
-    requestedRange == null
-      ? true
-      : availability
-          .filter((slot) => slot.hour >= requestedRange.start && slot.hour < requestedRange.end)
-          .every((slot) => slot.status === "available");
-
-  return {
-    id: room.id,
-    roomCode: room.roomCode,
-    name: room.name,
-    location: room.location,
-    capacity: room.capacity,
-    isAvailableForRequestedRange,
-  };
 };
 
 const deriveAvailabilityWindows = (
@@ -200,42 +177,8 @@ export const fairroomApi = {
   },
 
   async searchRooms(params: SearchRoomsParams): Promise<RoomSearchResponse> {
-    return withFallback(
-      async () => {
-        const { data } = await client.get<RoomSearchResponse>("/rooms", {
-          params,
-        });
-        return data;
-      },
-      () => {
-        const requestedRange = parseRequestedRange(params.startsAt, params.endsAt);
-        let items = rooms
-          .filter((room) => room.isActive)
-          .filter((room) => {
-            const matchSearch = params.search
-              ? `${room.name} ${room.roomCode}`.toLowerCase().includes(params.search.toLowerCase())
-              : true;
-            const matchCapacity = params.minCapacity ? room.capacity >= params.minCapacity : true;
-            return matchSearch && matchCapacity;
-          })
-          .map((room) => mapRoomSearchItem(room, requestedRange));
-
-        if (params.onlyAvailable) {
-          items = items.filter((room) => room.isAvailableForRequestedRange);
-        }
-
-        const page = params.page ?? 1;
-        const pageSize = params.pageSize ?? 10;
-        const startIndex = (page - 1) * pageSize;
-
-        return {
-          items: items.slice(startIndex, startIndex + pageSize),
-          page,
-          pageSize,
-          total: items.length,
-        };
-      },
-    );
+    const { data } = await client.get<RoomSearchResponse>("/rooms", { params });
+    return data;
   },
 
   async getRoom(roomId: string): Promise<Room> {

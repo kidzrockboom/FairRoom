@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FilterPanel from "@/components/dashboard/FilterPanel";
 import { fairroomApi } from "@/api/fairroomApi";
-import type { RoomSearchItem } from "@/api/contracts";
+import type { Room } from "@/api/contracts";
 
 type SortOption = "capacity-asc" | "capacity-desc" | "name-asc";
 const ITEMS_PER_PAGE = 6;
@@ -20,7 +20,7 @@ function SearchRoomsPage() {
   });
   const [sortBy, setSortBy] = useState<SortOption>("capacity-asc");
   const [page, setPage] = useState(1);
-  const [roomResults, setRoomResults] = useState<RoomSearchItem[]>([]);
+  const [roomResults, setRoomResults] = useState<Room[]>([]);
   const [totalRooms, setTotalRooms] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +71,6 @@ function SearchRoomsPage() {
           minCapacity: minCapacity ?? undefined,
           startsAt,
           endsAt,
-          onlyAvailable: true,
           page,
           pageSize: ITEMS_PER_PAGE,
         });

@@ -1,26 +1,34 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Empty from "@/components/ui/empty";
+import ErrorBlock from "@/components/ui/error";
 import { Separator } from "@/components/ui/separator";
-import type { RoomSearchItem } from "@/api/contracts";
 import { ChevronLeft, ChevronRight, Search, X } from "@/lib/icons";
+import { useSearchRoomsContext } from "../context";
 import RoomCard from "./RoomCard";
+import RoomCardSkeleton from "./RoomCardSkeleton";
 
-const PLACEHOLDER_ROOMS: RoomSearchItem[] = [
-  { id: "1", roomCode: "RM-302", name: "Room 302",        location: "Level 3, East Wing",   capacity: 4,  isAvailableForRequestedRange: true  },
-  { id: "2", roomCode: "RM-201", name: "Seminar Room A",  location: "Level 1, Main Hall",   capacity: 20, isAvailableForRequestedRange: false },
-  { id: "3", roomCode: "QP-04",   name: "Quiet Pod 04",    location: "Library, North",       capacity: 1,  isAvailableForRequestedRange: true  },
-  { id: "4", roomCode: "LAB-210", name: "Lab 210",         location: "Level 2, West Wing",   capacity: 15, isAvailableForRequestedRange: true  },
-  { id: "5", roomCode: "MR-09",   name: "Meeting Room 09", location: "Level 4, Center",      capacity: 6,  isAvailableForRequestedRange: true  },
-  { id: "6", roomCode: "CS-01",   name: "Collab Space 1",  location: "Student Hub",          capacity: 10, isAvailableForRequestedRange: false },
-];
-
-const ACTIVE_FILTER_CHIPS = [
-  { id: "date",     label: "Date: 2024-10-24" },
-  { id: "capacity", label: "Capacity: 4+"     },
-  { id: "time",     label: "Time: 9AM – 5PM"  },
-];
+const SKELETON_COUNT = 6;
 
 export default function ResultsPanel() {
+  const {
+    rooms,
+    totalRooms,
+    isLoading,
+    error,
+    search,
+    sort,
+    page,
+    totalPages,
+    activeChips,
+    setSearch,
+    setSort,
+    setPage,
+    removeChip,
+    resetFilters,
+    retry,
+  } = useSearchRoomsContext();
+
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -42,53 +50,58 @@ export default function ResultsPanel() {
           />
           <input
             type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search room name or ID..."
             className="h-10 w-full rounded-input border border-input bg-surface pl-9 pr-3 text-sm text-content placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
           />
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-          Active:
-        </span>
+      {activeChips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+            Active:
+          </span>
 
-        {ACTIVE_FILTER_CHIPS.map((chip) => (
-          <Badge
-            key={chip.id}
-            className="h-auto gap-1.5 rounded-full border border-border bg-muted-foreground/10 px-3 py-1.5 text-sm font-medium text-content"
-            variant="outline"
-          >
-            {chip.label}
-            <button
-              type="button"
-              aria-label={`Remove ${chip.label} filter`}
-              className="rounded-full text-muted-foreground transition-colors hover:text-content"
+          {activeChips.map((chip) => (
+            <Badge
+              key={chip.id}
+              className="h-auto gap-1.5 rounded-full border border-border bg-muted-foreground/10 px-3 py-1.5 text-sm font-medium text-content"
+              variant="outline"
             >
-              <X size={12} strokeWidth={2} aria-hidden="true" />
-            </button>
-          </Badge>
-        ))}
+              {chip.label}
+              <button
+                type="button"
+                aria-label={`Remove ${chip.label} filter`}
+                className="rounded-full text-muted-foreground transition-colors hover:text-content"
+                onClick={() => removeChip(chip.id)}
+              >
+                <X size={12} strokeWidth={2} aria-hidden="true" />
+              </button>
+            </Badge>
+          ))}
 
-        <button
-          type="button"
-          className="text-sm font-medium text-muted-foreground transition-colors hover:text-content"
-        >
-          Clear All
-        </button>
-      </div>
+          <button
+            type="button"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-content"
+            onClick={resetFilters}
+          >
+            Clear All
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-heading text-xl font-semibold text-content">
-          Showing {PLACEHOLDER_ROOMS.length} Rooms
+          {isLoading ? "Loading…" : `Showing ${totalRooms} ${totalRooms === 1 ? "Room" : "Rooms"}`}
         </h2>
 
         <div className="flex shrink-0 items-center gap-2">
-          <span className="hidden text-sm text-muted-foreground sm:block">
-            Sort by:
-          </span>
+          <span className="hidden text-sm text-muted-foreground sm:block">Sort by:</span>
           <select
-            defaultValue="capacity-asc"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "capacity-asc" | "capacity-desc" | "name-asc")}
             className="h-9 rounded-input border border-input bg-surface px-3 text-sm text-content focus:outline-none focus:ring-2 focus:ring-ring/50"
           >
             <option value="capacity-asc">Capacity (Low to High)</option>
@@ -100,34 +113,56 @@ export default function ResultsPanel() {
 
       <Separator />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {PLACEHOLDER_ROOMS.map((room) => (
-          <RoomCard key={room.id} room={room} />
-        ))}
-      </div>
+      {error ? (
+        <ErrorBlock message={error} onRetry={retry} className="py-16" />
+      ) : isLoading ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+            <RoomCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : rooms.length === 0 ? (
+        <Empty
+          title="No rooms found"
+          description="Try adjusting your filters or search term."
+          action={{ label: "Clear filters", onClick: resetFilters }}
+          className="py-16"
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {rooms.map((room) => (
+            <RoomCard key={room.id} room={room} />
+          ))}
+        </div>
+      )}
 
-      <div className="flex items-center justify-center gap-3 py-4">
-        <Button
-          variant="outline"
-          size="icon-sm"
-          aria-label="Previous page"
-          disabled
-        >
-          <ChevronLeft size={16} strokeWidth={1.5} aria-hidden="true" />
-        </Button>
+      {!isLoading && !error && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 py-4">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            aria-label="Previous page"
+            disabled={page <= 1}
+            onClick={() => setPage(page - 1)}
+          >
+            <ChevronLeft size={16} strokeWidth={1.5} aria-hidden="true" />
+          </Button>
 
-        <span className="min-w-[90px] text-center text-sm font-semibold text-content">
-          Page 1 of 3
-        </span>
+          <span className="min-w-[90px] text-center text-sm font-semibold text-content">
+            Page {page} of {totalPages}
+          </span>
 
-        <Button
-          variant="outline"
-          size="icon-sm"
-          aria-label="Next page"
-        >
-          <ChevronRight size={16} strokeWidth={1.5} aria-hidden="true" />
-        </Button>
-      </div>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            aria-label="Next page"
+            disabled={page >= totalPages}
+            onClick={() => setPage(page + 1)}
+          >
+            <ChevronRight size={16} strokeWidth={1.5} aria-hidden="true" />
+          </Button>
+        </div>
+      )}
     </section>
   );
 }

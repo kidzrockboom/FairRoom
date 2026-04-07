@@ -1,0 +1,182 @@
+import { useCallback, useEffect, useMemo, useReducer } from "react";
+import type { Room } from "@/api/contracts";
+import { toSearchParams } from "../mappers";
+import { fetchRooms } from "../roomSearchService";
+import type { Filters } from "../schemas";
+
+type SortKey = "capacity-asc" | "capacity-desc" | "name-asc";
+
+const PAGE_SIZE = 9;
+
+const DEFAULT_FILTERS: Filters = {
+  date: "",
+  capacity: null,
+  timeRange: [0, 24],
+};
+
+type State = {
+  filters: Filters;
+  search: string;
+  sort: SortKey;
+  page: number;
+  rooms: Room[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+type Action =
+  | { type: "PATCH_FILTERS"; payload: Partial<Filters> }
+  | { type: "RESET" }
+  | { type: "REMOVE_CHIP"; payload: "date" | "capacity" | "time" }
+  | { type: "SET_SEARCH"; payload: string }
+  | { type: "SET_SORT"; payload: SortKey }
+  | { type: "SET_PAGE"; payload: number }
+  | { type: "FETCH_START" }
+  | { type: "FETCH_SUCCESS"; payload: Room[] }
+  | { type: "FETCH_ERROR"; payload: string };
+
+const initialState: State = {
+  filters: DEFAULT_FILTERS,
+  search: "",
+  sort: "capacity-asc",
+  page: 1,
+  rooms: [],
+  isLoading: false,
+  error: null,
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "PATCH_FILTERS":
+      return { ...state, filters: { ...state.filters, ...action.payload }, page: 1 };
+
+    case "RESET":
+      return { ...state, filters: DEFAULT_FILTERS, search: "", page: 1 };
+
+    case "REMOVE_CHIP": {
+      const updates: Partial<Filters> = {};
+      if (action.payload === "date") updates.date = "";
+      if (action.payload === "capacity") updates.capacity = null;
+      if (action.payload === "time") updates.timeRange = [0, 24];
+      return { ...state, filters: { ...state.filters, ...updates }, page: 1 };
+    }
+
+    case "SET_SEARCH":
+      return { ...state, search: action.payload, page: 1 };
+
+    case "SET_SORT":
+      return { ...state, sort: action.payload, page: 1 };
+
+    case "SET_PAGE":
+      return { ...state, page: action.payload };
+
+    case "FETCH_START":
+      return { ...state, isLoading: true, error: null };
+
+    case "FETCH_SUCCESS":
+      return { ...state, isLoading: false, rooms: action.payload };
+
+    case "FETCH_ERROR":
+      return { ...state, isLoading: false, error: action.payload };
+
+    default:
+      return state;
+  }
+}
+
+export function useSearchRooms() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  useEffect(() => {
+    let cancelled = false;
+    dispatch({ type: "FETCH_START" });
+
+    const params = toSearchParams(state.filters, state.search);
+
+    fetchRooms(params)
+      .then((rooms) => {
+        if (!cancelled) dispatch({ type: "FETCH_SUCCESS", payload: rooms });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : "Failed to load rooms";
+          dispatch({ type: "FETCH_ERROR", payload: message });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.filters, state.search]);
+
+  const sorted = useMemo(() => {
+    const copy = [...state.rooms];
+    if (state.sort === "capacity-asc") return copy.sort((a, b) => a.capacity - b.capacity);
+    if (state.sort === "capacity-desc") return copy.sort((a, b) => b.capacity - a.capacity);
+    return copy.sort((a, b) => a.name.localeCompare(b.name));
+  }, [state.rooms, state.sort]);
+
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(sorted.length / PAGE_SIZE)), [sorted]);
+
+  const currentPageRooms = useMemo(() => {
+    const start = (state.page - 1) * PAGE_SIZE;
+    return sorted.slice(start, start + PAGE_SIZE);
+  }, [sorted, state.page]);
+
+  const activeChips = useMemo(() => {
+    const chips: Array<{ id: "date" | "capacity" | "time"; label: string }> = [];
+
+    if (state.filters.date) {
+      chips.push({ id: "date", label: `Date: ${state.filters.date}` });
+    }
+    if (state.filters.capacity !== null) {
+      chips.push({ id: "capacity", label: `Capacity: ${state.filters.capacity}+` });
+    }
+    const [start, end] = state.filters.timeRange;
+    if (start !== 0 || end !== 24) {
+      const fmt = (h: number) => {
+        const suffix = h >= 12 ? "PM" : "AM";
+        const hour = h % 12 === 0 ? 12 : h % 12;
+        return `${hour}${suffix}`;
+      };
+      chips.push({ id: "time", label: `Time: ${fmt(start)} – ${fmt(end)}` });
+    }
+
+    return chips;
+  }, [state.filters]);
+
+  const patchFilters = useCallback(
+    (payload: Partial<Filters>) => dispatch({ type: "PATCH_FILTERS", payload }),
+    [],
+  );
+
+  const resetFilters = useCallback(() => dispatch({ type: "RESET" }), []);
+  const removeChip = useCallback(
+    (id: "date" | "capacity" | "time") => dispatch({ type: "REMOVE_CHIP", payload: id }),
+    [],
+  );
+  const setSearch = useCallback((q: string) => dispatch({ type: "SET_SEARCH", payload: q }), []);
+  const setSort = useCallback((s: SortKey) => dispatch({ type: "SET_SORT", payload: s }), []);
+  const setPage = useCallback((p: number) => dispatch({ type: "SET_PAGE", payload: p }), []);
+  const retry = useCallback(() => dispatch({ type: "RESET" }), []);
+
+  return {
+    filters: state.filters,
+    search: state.search,
+    sort: state.sort,
+    page: state.page,
+    isLoading: state.isLoading,
+    error: state.error,
+    rooms: currentPageRooms,
+    totalRooms: sorted.length,
+    totalPages,
+    activeChips,
+    patchFilters,
+    resetFilters,
+    removeChip,
+    setSearch,
+    setSort,
+    setPage,
+    retry,
+  };
+}
