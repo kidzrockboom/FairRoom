@@ -7,6 +7,12 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        // Needed for exclusion constraints
+        manager
+            .get_connection()
+            .execute_unprepared("CREATE EXTENSION IF NOT EXISTS btree_gist;")
+            .await?;
+
         manager
             .create_type(
                 Type::create()
@@ -63,6 +69,11 @@ impl MigrationTrait for Migration {
                     .col(boolean(Booking::CheckedIn).not_null().default(false))
                     .col(timestamp(Booking::CreatedAt).not_null())
                     .col(timestamp(Booking::UpdatedAt).not_null())
+                    .col(
+                        ColumnDef::new(Booking::TimeSlot)
+                            .custom(Alias::new("tstzrange"))
+                            .not_null(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -74,7 +85,7 @@ impl MigrationTrait for Migration {
                 ALTER TABLE booking
                 ADD CONSTRAINT no_overlap
                 EXCLUDE USING gist (
-                  room_name WITH =,
+                  room_id WITH =,
                   time_slot WITH &&
                 );
                 "#,
@@ -86,25 +97,88 @@ impl MigrationTrait for Migration {
             .get_connection()
             .execute_unprepared(
                 r#"
-INSERT INTO booking (id, user_id, room_name, time_slot,)
+                INSERT INTO booking (
+  id,
+  user_id,
+  room_id,
+  starts_at,
+  ends_at,
+  status,
+  checked_in,
+  created_at,
+  updated_at,
+  time_slot
+)
 VALUES
+
+-- Active booking (future)
 (
   uuid_generate_v4(),
   (SELECT id FROM "user" WHERE email = 'bob@example.com'),
-  'Room A',
-  tstzrange('2026-04-01 09:00', '2026-04-01 10:00')
+  (SELECT id FROM room WHERE room_name = 'Meeting Room A1'),
+  '2026-04-10 10:00',
+  '2026-04-10 11:00',
+  'active',
+  false,
+  NOW(),
+  NOW(),
+  tstzrange('2026-04-01 08:00', '2026-04-01 9:00')
 ),
+
+-- Completed booking
+(
+  uuid_generate_v4(),
+  (SELECT id FROM "user" WHERE email = 'alice@example.com'),
+  (SELECT id FROM room WHERE room_name = 'Meeting Room A1'),
+  '2026-04-01 09:00',
+  '2026-04-01 10:00',
+  'completed',
+  true,
+  NOW() - INTERVAL '10 days',
+  NOW() - INTERVAL '9 days',
+  tstzrange('2026-04-01 10:00', '2026-04-01 11:00')
+),
+
+-- Cancelled booking
 (
   uuid_generate_v4(),
   (SELECT id FROM "user" WHERE email = 'charlie@example.com'),
-  'Room A',
-  tstzrange('2026-04-01 10:00', '2026-04-01 11:00')
+  (SELECT id FROM room WHERE room_name = 'Conference Room B1'),
+  '2026-04-05 14:00',
+  '2026-04-05 15:00',
+  'cancelled',
+  false,
+  NOW() - INTERVAL '5 days',
+  NOW() - INTERVAL '5 days',
+  tstzrange('2026-04-01 11:00', '2026-04-01 12:00')
 ),
+
+-- No-show booking
 (
   uuid_generate_v4(),
   (SELECT id FROM "user" WHERE email = 'bob@example.com'),
-  'Room B',
-  tstzrange('2026-04-01 11:00', '2026-04-01 13:00')
+  (SELECT id FROM room WHERE room_name = 'Meeting Room A2'),
+  '2026-04-03 11:00',
+  '2026-04-03 12:00',
+  'no_show',
+  false,
+  NOW() - INTERVAL '7 days',
+  NOW() - INTERVAL '6 days',
+  tstzrange('2026-04-01 13:00', '2026-04-01 14:00')
+),
+
+-- Another active booking
+(
+  uuid_generate_v4(),
+  (SELECT id FROM "user" WHERE email = 'charlie@example.com'),
+  (SELECT id FROM room WHERE room_name = 'Conference Room B1'),
+  '2026-04-12 13:00',
+  '2026-04-12 15:00',
+  'active',
+  false,
+  NOW(),
+  NOW(),
+  tstzrange('2026-04-01 15:00', '2026-04-01 16:00')
 );
         "#,
             )
@@ -136,6 +210,7 @@ enum Booking {
     CheckedIn,
     CreatedAt,
     UpdatedAt,
+    TimeSlot,
 }
 
 #[derive(Iden)]

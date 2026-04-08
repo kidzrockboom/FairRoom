@@ -62,12 +62,12 @@ impl MigrationTrait for Migration {
 VALUES
 (
   uuid_generate_v4(),
-  (SELECT id FROM room WHERE room_name = 'Room A'),
+  (SELECT id FROM room WHERE room_name = 'Meeting Room A1'),
   tstzrange('2026-04-01 08:00', '2026-04-01 12:00')
 ),
 (
   uuid_generate_v4(),
-  (SELECT id FROM room WHERE room_name = 'Room A'),
+  (SELECT id FROM room WHERE room_name = 'Meeting Room A1'),
   tstzrange('2026-04-01 13:00', '2026-04-01 18:00')
 );
         "#,
