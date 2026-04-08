@@ -25,31 +25,29 @@ impl MigrationTrait for Migration {
             .get_connection()
             .execute_unprepared(
                 r#"
-        INSERT INTO room (id, room_name, location, capacity, usage_notes, time_slots)
+                CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+        INSERT INTO room (id, room_name, location, capacity, usage_notes)
 VALUES
 (
   uuid_generate_v4(),
   'Room A',
   'First Floor - Building 1',
   10,
-  'Project meetings only',
-  tstzrange('2026-04-01 08:00', '2026-04-01 18:00')
+  'Project meetings only'
 ),
 (
   uuid_generate_v4(),
   'Room B',
   'Second Floor - Building 1',
   20,
-  'Lectures and workshops',
-  tstzrange('2026-04-01 09:00', '2026-04-01 17:00')
+  'Lectures and workshops'
 ),
 (
   uuid_generate_v4(),
   'Room C',
   'Ground Floor - Building 2',
   5,
-  'Quiet study room',
-  tstzrange('2026-04-01 10:00', '2026-04-01 16:00')
+  'Quiet study room'
 );
         "#,
             )

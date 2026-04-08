@@ -27,7 +27,7 @@ impl MigrationTrait for Migration {
                     )
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk-room-time-slot-room")
+                            .name("fk-room-time-slots-room")
                             .from(RoomTimeSlots::Table, RoomTimeSlots::RoomId)
                             .to(Room::Table, Room::Id)
                             .on_delete(ForeignKeyAction::Cascade)
@@ -57,7 +57,8 @@ impl MigrationTrait for Migration {
             .get_connection()
             .execute_unprepared(
                 r#"
-        INSERT INTO room_time_slot (id, room_id, time_slot)
+                CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+        INSERT INTO room_time_slots (id, room_id, time_slot)
 VALUES
 (
   uuid_generate_v4(),

@@ -26,7 +26,7 @@ impl MigrationTrait for Migration {
                     .col(pk_uuid(User::Id).not_null().primary_key())
                     .col(string(User::FullName).not_null())
                     .col(string(User::Email).not_null().unique_key())
-                    .col(string(User::Password).not_null().unique_key())
+                    .col(string(User::Password).not_null())
                     .col(integer(User::Strikes).not_null())
                     .col(
                         ColumnDef::new(User::Role)
@@ -40,11 +40,13 @@ impl MigrationTrait for Migration {
 
         // Populate the user table
         manager.get_connection().execute_unprepared(r#"
-        INSERT INTO "user" (id, full_name, email, password, strikes, role, bookings, created_at)
+        CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+        INSERT INTO "user" (id, full_name, email, password, strikes, role, created_at)
         VALUES
-        (uuid_generate_v4(), 'Alice Admin', 'alice@example.com', 'hashed_pw_1', 0, 'admin', 0, NOW()),
-        (uuid_generate_v4(), 'Bob Student', 'bob@example.com', 'hashed_pw_2', 1, 'student', 2, NOW()),
-        (uuid_generate_v4(), 'Charlie Student', 'charlie@example.com', 'hashed_pw_3', 0, 'student', 1, NOW());
+        (uuid_generate_v4(), 'Alice Admin', 'alice@example.com', 'hashed_pw_1', 0, 'admin', NOW()),
+        (uuid_generate_v4(), 'Bob Student', 'bob@example.com', 'hashed_pw_2', 1, 'student', NOW()),
+        (uuid_generate_v4(), 'Charlie Student', 'charlie@example.com', 'hashed_pw_3', 0, 'student', NOW());
         "#).await?;
 
         Ok(())
