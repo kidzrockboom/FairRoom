@@ -86,7 +86,7 @@ impl MigrationTrait for Migration {
             .get_connection()
             .execute_unprepared(
                 r#"
-INSERT INTO booking (id, user_id, room_name, time_slot)
+INSERT INTO booking (id, user_id, room_name, time_slot,)
 VALUES
 (
   uuid_generate_v4(),
@@ -110,7 +110,7 @@ VALUES
             )
             .await?;
 
-        Ok(()).await
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
@@ -156,6 +156,5 @@ enum User {
 #[derive(DeriveIden)]
 enum Room {
     Table,
-    RoomName,
     Id,
 }
