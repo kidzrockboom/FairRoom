@@ -2,7 +2,7 @@
 build = "nixpacks"
 
 [deploy]
-startCommand = "sea-orm-cli migrate up && ./target/release/fairroom"
+startCommand = "./target/release/fairroom"
 healthcheckPath = "/health_check"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
