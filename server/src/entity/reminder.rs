@@ -3,9 +3,10 @@
 use super::sea_orm_active_enums::ChannelEnum;
 use super::sea_orm_active_enums::StatEnum;
 use sea_orm::entity::prelude::*;
+use serde::Serialize;
 
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize)]
 #[sea_orm(table_name = "reminder")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
@@ -25,6 +26,7 @@ pub struct Model {
         on_update = "Cascade",
         on_delete = "Cascade"
     )]
+    #[serde(skip)]
     pub booking: HasOne<super::booking::Entity>,
 }
 

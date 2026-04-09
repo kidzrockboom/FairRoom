@@ -2,9 +2,10 @@
 
 use super::sea_orm_active_enums::StatusEnum;
 use sea_orm::entity::prelude::*;
+use serde::Serialize;
 
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize)]
 #[sea_orm(table_name = "booking")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
@@ -18,8 +19,10 @@ pub struct Model {
     pub created_at: DateTime,
     pub updated_at: DateTime,
     #[sea_orm(ignore, column_type = "custom(\"tstzrange\")", select_as = "text")]
+    #[serde(skip)]
     pub time_slot: String,
     #[sea_orm(has_many)]
+    #[serde(skip)]
     pub reminders: HasMany<super::reminder::Entity>,
     #[sea_orm(
         belongs_to,
@@ -28,6 +31,7 @@ pub struct Model {
         on_update = "Cascade",
         on_delete = "Cascade"
     )]
+    #[serde(skip)]
     pub room: HasOne<super::room::Entity>,
     #[sea_orm(
         belongs_to,
@@ -36,6 +40,7 @@ pub struct Model {
         on_update = "Cascade",
         on_delete = "Cascade"
     )]
+    #[serde(skip)]
     pub user: HasOne<super::user::Entity>,
 }
 

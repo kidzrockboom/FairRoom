@@ -2,9 +2,10 @@
 
 use super::sea_orm_active_enums::RoleEnum;
 use sea_orm::entity::prelude::*;
+use serde::Serialize;
 
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize)]
 #[sea_orm(table_name = "user")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
@@ -12,11 +13,13 @@ pub struct Model {
     pub full_name: String,
     #[sea_orm(unique)]
     pub email: String,
+    #[serde(skip)]
     pub password: String,
     pub strikes: i32,
     pub role: RoleEnum,
     pub created_at: DateTime,
     #[sea_orm(has_many)]
+    #[serde(skip)]
     pub bookings: HasMany<super::booking::Entity>,
 }
 
