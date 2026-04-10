@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { render, screen, waitFor } from "@testing-library/react";
 import AdminBookingsPage from "@/pages/admin/AdminBookingsPage";
 import { fairroomApi } from "@/api/fairroomApi";
 
@@ -54,9 +53,7 @@ function filterBookings(params: Record<string, unknown> = {}) {
       booking.room.roomCode.toLowerCase().includes(search);
     const matchesStatus = !status || booking.status === status;
     const bookingDate = booking.startsAt.slice(0, 10);
-    const matchesDate =
-      (!startsAt || bookingDate >= startsAt) &&
-      (!endsAt || bookingDate <= endsAt);
+    const matchesDate = (!startsAt || bookingDate >= startsAt) && (!endsAt || bookingDate <= endsAt);
 
     return matchesSearch && matchesStatus && matchesDate;
   });
@@ -190,5 +187,29 @@ describe("AdminBookingsPage", () => {
         }),
       );
     });
+  });
+
+  it("renders quick links with the matching admin destinations", async () => {
+    vi.mocked(fairroomApi.getAdminBookings).mockResolvedValue({
+      items: [],
+      page: 1,
+      pageSize: 12,
+      total: 0,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/admin/bookings"]}>
+        <Routes>
+          <Route path="/admin/bookings" element={<AdminBookingsPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getAllByText("Quick Links").length).toBeGreaterThan(0);
+    const quickLinks = screen.getAllByRole("link");
+
+    expect(quickLinks[0]).toHaveAttribute("href", "/admin/strikes");
+    expect(quickLinks[1]).toHaveAttribute("href", "/admin/inventory");
+    expect(quickLinks[2]).toHaveAttribute("href", "/admin/analytics");
   });
 });

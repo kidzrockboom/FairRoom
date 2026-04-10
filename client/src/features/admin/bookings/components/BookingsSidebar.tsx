@@ -1,11 +1,11 @@
 import { ArrowUpRight, Clock, iconProps } from "@/lib/icons";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 import type { AdminQuickLink } from "@/features/admin/bookings/content";
 
 type BookingsSidebarProps = {
@@ -29,13 +29,13 @@ export default function BookingsSidebar({
         <CardContent className="px-4 py-3">
           <div className="flex flex-col gap-1">
             {quickLinks.map((item) => (
-              <Button
+              <Link
                 key={item.id}
-                variant="ghost"
-                className="h-auto w-full justify-start rounded-md px-2 py-2 text-left text-sm font-medium text-content hover:bg-muted/50"
+                to={item.href}
+                className="flex h-auto w-full items-center justify-start rounded-md px-2 py-2 text-left text-sm font-medium text-content hover:bg-muted/50"
               >
                 <span>{item.label}</span>
-              </Button>
+              </Link>
             ))}
           </div>
         </CardContent>

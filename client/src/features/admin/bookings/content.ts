@@ -1,6 +1,7 @@
 export type AdminQuickLink = {
   id: string;
   label: string;
+  href: string;
 };
 
 export const adminBookingsHeader = {
@@ -9,9 +10,9 @@ export const adminBookingsHeader = {
 } as const;
 
 export const adminBookingsQuickLinks: AdminQuickLink[] = [
-  { id: "ql-1", label: "Strike Management" },
-  { id: "ql-2", label: "Room Inventory" },
-  { id: "ql-3", label: "Usage Analytics" },
+  { id: "ql-1", label: "Strike Management", href: "/admin/strikes" },
+  { id: "ql-2", label: "Room Inventory", href: "/admin/inventory" },
+  { id: "ql-3", label: "Usage Analytics", href: "/admin/analytics" },
 ];
 
 export const adminBookingsProTip =
