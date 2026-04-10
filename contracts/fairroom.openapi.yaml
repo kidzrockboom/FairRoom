@@ -16,6 +16,7 @@ tags:
   - name: Rooms
   - name: Bookings
   - name: Admin
+  - name: Amenities
 components:
   securitySchemes:
     bearerAuth:
@@ -173,7 +174,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccountActivityItem'
-    BookingSummary:
+    Booking:
       type: object
       required:
         [id, roomId, roomCode, roomName, startsAt, endsAt, status, checkedIn, createdAt, updatedAt]
@@ -218,7 +219,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/BookingSummary'
+            $ref: '#/components/schemas/Booking'
         page:
           type: integer
           example: 1
@@ -270,28 +271,36 @@ components:
         total:
           type: integer
           example: 1
-    RoomSearchItem:
+    Amenity:
       type: object
-      required: [id, roomCode, name, location, capacity, isAvailableForRequestedRange]
+      required: [id, label]
       properties:
         id:
           type: string
-          example: room_01
-        roomCode:
+          example: amenity_01
+        label:
           type: string
-          example: B201
-        name:
-          type: string
-          example: Library Study Room B201
-        location:
-          type: string
-          example: Main Library, Floor 2
-        capacity:
+          example: High-speed Wifi
+    AmenityListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Amenity'
+        total:
           type: integer
-          example: 6
-        isAvailableForRequestedRange:
-          type: boolean
-          example: true
+          example: 3
+    SetRoomAmenitiesRequest:
+      type: object
+      required: [amenityIds]
+      properties:
+        amenityIds:
+          type: array
+          items:
+            type: string
+          example: [amenity_01, amenity_03]
     RoomSearchResponse:
       type: object
       required: [items, page, pageSize, total]
@@ -299,7 +308,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/RoomSearchItem'
+            $ref: '#/components/schemas/Room'
         page:
           type: integer
           example: 1
@@ -311,7 +320,7 @@ components:
           example: 1
     Room:
       type: object
-      required: [id, roomCode, name, location, capacity, isActive, createdAt]
+      required: [id, roomCode, name, location, capacity, status, createdAt]
       properties:
         id:
           type: string
@@ -328,46 +337,39 @@ components:
         capacity:
           type: integer
           example: 6
-        isActive:
-          type: boolean
-          example: true
+        status:
+          type: string
+          enum: [operational, disabled]
+        usageNotes:
+          type: string
+          nullable: true
+          example: Quiet study space with whiteboard access.
         createdAt:
           type: string
           format: date-time
           example: '2026-03-01T08:00:00Z'
-    AvailabilityWindow:
-      type: object
-      required: [startsAt, endsAt, status]
-      properties:
-        startsAt:
-          type: string
-          format: date-time
-        endsAt:
-          type: string
-          format: date-time
-        status:
-          type: string
-          enum: [available, booked]
-    RoomAvailabilityResponse:
-      type: object
-      required: [roomId, requestedStartsAt, requestedEndsAt, windows]
-      properties:
-        roomId:
-          type: string
-          example: room_01
-        requestedStartsAt:
-          type: string
-          format: date-time
-        requestedEndsAt:
-          type: string
-          format: date-time
-        windows:
+        amenities:
           type: array
           items:
-            $ref: '#/components/schemas/AvailabilityWindow'
+            $ref: '#/components/schemas/Amenity'
+          example: []
+        isAvailableForRequestedRange:
+          type: boolean
+          description: >
+            Populated only on search results. Indicates whether the room has no
+            conflicting bookings for the requested startsAt/endsAt window.
+          example: true
+    RoomBookingsResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
     CreateBookingRequest:
       type: object
-      required: [roomId, startsAt, endsAt]
+      required: [roomId, startsAt, endsAt, purpose, expectedAttendees]
       properties:
         roomId:
           type: string
@@ -379,7 +381,15 @@ components:
         endsAt:
           type: string
           format: date-time
-          example: '2026-04-02T16:00:00Z'
+          example: '2026-04-02T15:00:00Z'
+        purpose:
+          type: string
+          minLength: 5
+          example: Final year project group coordination
+        expectedAttendees:
+          type: integer
+          minimum: 1
+          example: 4
     UpdateBookingRequest:
       type: object
       required: [startsAt, endsAt]
@@ -551,7 +561,7 @@ components:
           type: integer
     CreateRoomRequest:
       type: object
-      required: [roomCode, name, location, capacity]
+      required: [roomCode, name, location, capacity, status]
       properties:
         roomCode:
           type: string
@@ -562,6 +572,11 @@ components:
         capacity:
           type: integer
           minimum: 1
+        status:
+          type: string
+          enum: [operational, disabled]
+        usageNotes:
+          type: string
     UpdateRoomRequest:
       type: object
       properties:
@@ -574,8 +589,12 @@ components:
         capacity:
           type: integer
           minimum: 1
-        isActive:
-          type: boolean
+        status:
+          type: string
+          enum: [operational, disabled]
+        usageNotes:
+          type: string
+          nullable: true
     RoomUsageMetric:
       type: object
       required: [key, totalBookings, totalHours, noShowCount]
@@ -835,11 +854,6 @@ paths:
             minimum: 1
         - $ref: '#/components/parameters/StartsAt'
         - $ref: '#/components/parameters/EndsAt'
-        - in: query
-          name: onlyAvailable
-          schema:
-            type: boolean
-            default: true
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
       responses:
@@ -874,25 +888,30 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /rooms/{roomId}/availability:
+  /rooms/{roomId}/bookings:
     get:
       tags: [Rooms]
-      summary: Get derived availability windows for a room
+      summary: Get bookings for a room on a given date
       parameters:
         - in: path
           name: roomId
           required: true
           schema:
             type: string
-        - $ref: '#/components/parameters/StartsAt'
-        - $ref: '#/components/parameters/EndsAt'
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+          description: ISO date (YYYY-MM-DD) to filter bookings for
       responses:
         '200':
-          description: Derived room availability
+          description: Bookings for the room on the requested date
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoomAvailabilityResponse'
+                $ref: '#/components/schemas/RoomBookingsResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -915,7 +934,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookingSummary'
+                $ref: '#/components/schemas/Booking'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -970,7 +989,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookingSummary'
+                $ref: '#/components/schemas/Booking'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1004,7 +1023,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookingSummary'
+                $ref: '#/components/schemas/Booking'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1226,6 +1245,134 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/amenities:
+    get:
+      tags: [Amenities]
+      summary: List all amenities
+      responses:
+        '200':
+          description: Amenity list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AmenityListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Amenities]
+      summary: Create a new amenity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label]
+              properties:
+                label:
+                  type: string
+                  example: Standing Desk
+      responses:
+        '201':
+          description: Amenity created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Amenity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/amenities/{amenityId}:
+    delete:
+      tags: [Amenities]
+      summary: Delete an amenity
+      parameters:
+        - in: path
+          name: amenityId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Amenity deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/rooms/{roomId}/amenities:
+    put:
+      tags: [Amenities]
+      summary: Set amenities for a room (replaces existing assignment)
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetRoomAmenitiesRequest'
+      responses:
+        '200':
+          description: Room amenities updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /admin/rooms/{roomId}/amenities/{amenityId}:
+    delete:
+      tags: [Amenities]
+      summary: Remove a single amenity from a room
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: amenityId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Amenity removed from room
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /admin/rooms/{roomId}:
