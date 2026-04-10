@@ -1,5 +1,15 @@
 import type { AccountState, Booking, Reminder, Room, UserProfile } from "./domain";
 
+export interface AmenityResponse {
+  id: string;
+  label: string;
+}
+
+export interface AmenityListResponse {
+  items: AmenityResponse[];
+  total: number;
+}
+
 export interface AuthResponse {
   token: string;
   user: UserProfile;
@@ -17,6 +27,16 @@ export interface RoomSearchResponse {
   items: Room[];
   page: number;
   pageSize: number;
+  total: number;
+}
+
+export interface AdminRoomResponse extends Room {
+  usageNotes: string;
+  amenities: AmenityResponse[];
+}
+
+export interface AdminRoomListResponse {
+  items: AdminRoomResponse[];
   total: number;
 }
 

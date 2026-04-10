@@ -1,4 +1,4 @@
-import type { ReminderStatus } from "./domain";
+import type { ReminderStatus, RoomStatus } from "./domain";
 
 export type BookingScope = "active" | "past" | "all";
 
@@ -56,6 +56,10 @@ export interface AdminBookingQueryParams {
   pageSize?: number;
 }
 
+export interface AdminRoomQueryParams {
+  status?: RoomStatus;
+}
+
 export interface AdminUserQueryParams {
   search?: string;
 }
@@ -68,4 +72,30 @@ export interface CreateStrikeRequest {
 
 export interface RevokeStrikeRequest {
   reason?: string;
+}
+
+export interface CreateRoomRequest {
+  roomCode: string;
+  name: string;
+  location: string;
+  capacity: number;
+  status: RoomStatus;
+  usageNotes?: string;
+}
+
+export interface UpdateRoomRequest {
+  roomCode?: string;
+  name?: string;
+  location?: string;
+  capacity?: number;
+  status?: RoomStatus;
+  usageNotes?: string;
+}
+
+export interface CreateAmenityRequest {
+  label: string;
+}
+
+export interface SetRoomAmenitiesRequest {
+  amenityIds: string[];
 }

@@ -3,6 +3,7 @@ export type BookingStatus = "active" | "cancelled" | "completed" | "no_show";
 export type ReminderStatus = "scheduled" | "delivered" | "failed";
 export type ReminderChannel = "email" | "push" | "sms";
 export type AccountState = "good" | "warned" | "restricted";
+export type RoomStatus = "operational" | "disabled";
 
 export interface UserProfile {
   id: string;
@@ -18,7 +19,7 @@ export interface Room {
   name: string;
   location: string;
   capacity: number;
-  status: "operational" | "disabled";
+  status: RoomStatus;
   createdAt: string;
   building?: string;
   floor?: string;
