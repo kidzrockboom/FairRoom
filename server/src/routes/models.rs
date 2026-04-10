@@ -150,6 +150,25 @@ pub struct AccountStatusResponse {
     pub account_state: String,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountActivityItem {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub activity_type: String,
+    pub title: String,
+    pub description: String,
+    pub occurred_at: String,
+    pub status: String,
+    pub source_entity_type: String,
+    pub source_entity_id: String,
+}
+
+#[derive(Serialize)]
+pub struct AccountActivitiesResponse {
+    pub items: Vec<AccountActivityItem>,
+}
+
 // ── Booking requests ──────────────────────────────────────────────────────────
 
 #[derive(Deserialize)]
