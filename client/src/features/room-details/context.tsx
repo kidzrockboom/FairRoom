@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, type ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { useRoomDetails } from "./hooks/useRoomDetails";

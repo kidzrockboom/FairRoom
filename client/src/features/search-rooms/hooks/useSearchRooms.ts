@@ -124,7 +124,7 @@ export function useSearchRooms() {
     return () => {
       cancelled = true;
     };
-  }, [state.filters.date, state.filters.capacity, state.filters.timeRange, state.search]);
+  }, [state.filters, state.search]);
 
   const amenityFiltered = useMemo(() => {
     if (state.filters.amenityIds.length === 0) return state.rooms;

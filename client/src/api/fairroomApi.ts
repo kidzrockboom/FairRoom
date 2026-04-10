@@ -178,7 +178,12 @@ export const fairroomApi = {
       () => {
         const items = bookings
           .filter((b) => b.roomId === roomId && b.startsAt.slice(0, 10) === date)
-          .map(({ userId, ...booking }) => booking);
+          .map((booking) => {
+            void booking.userId;
+            const { userId, ...rest } = booking;
+            void userId;
+            return rest as Booking;
+          });
         return { items };
       },
     );

@@ -24,16 +24,22 @@ export function useConfirmBooking({ roomId, date, slotHour }: ConfirmBookingRout
 
   useEffect(() => {
     let cancelled = false;
-    setIsLoadingRoom(true);
 
-    fairroomApi.getRoom(roomId)
-      .then((fetched) => { if (!cancelled) setRoom(fetched); })
-      .catch((err: unknown) => {
+    void (async () => {
+      setIsLoadingRoom(true);
+      setRoomError(null);
+
+      try {
+        const fetched = await fairroomApi.getRoom(roomId);
+        if (!cancelled) setRoom(fetched);
+      } catch (err: unknown) {
         if (!cancelled) {
           setRoomError(err instanceof Error ? err.message : "Failed to load room");
         }
-      })
-      .finally(() => { if (!cancelled) setIsLoadingRoom(false); });
+      } finally {
+        if (!cancelled) setIsLoadingRoom(false);
+      }
+    })();
 
     return () => { cancelled = true; };
   }, [roomId]);

@@ -320,7 +320,7 @@ components:
           example: 1
     Room:
       type: object
-      required: [id, roomCode, name, location, capacity, isActive, createdAt]
+      required: [id, roomCode, name, location, capacity, status, createdAt]
       properties:
         id:
           type: string
@@ -337,9 +337,13 @@ components:
         capacity:
           type: integer
           example: 6
-        isActive:
-          type: boolean
-          example: true
+        status:
+          type: string
+          enum: [operational, disabled]
+        usageNotes:
+          type: string
+          nullable: true
+          example: Quiet study space with whiteboard access.
         createdAt:
           type: string
           format: date-time
@@ -557,7 +561,7 @@ components:
           type: integer
     CreateRoomRequest:
       type: object
-      required: [roomCode, name, location, capacity]
+      required: [roomCode, name, location, capacity, status]
       properties:
         roomCode:
           type: string
@@ -568,6 +572,11 @@ components:
         capacity:
           type: integer
           minimum: 1
+        status:
+          type: string
+          enum: [operational, disabled]
+        usageNotes:
+          type: string
     UpdateRoomRequest:
       type: object
       properties:
@@ -580,8 +589,12 @@ components:
         capacity:
           type: integer
           minimum: 1
-        isActive:
-          type: boolean
+        status:
+          type: string
+          enum: [operational, disabled]
+        usageNotes:
+          type: string
+          nullable: true
     RoomUsageMetric:
       type: object
       required: [key, totalBookings, totalHours, noShowCount]

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 import type { Room, Booking } from "@/api/contracts";
 import type { TimeSlot } from "@/features/search-rooms/components/SlotButton";
-import { loadRoomDetails, loadRoomBookings } from "../roomDetailsService";
+import { loadRoomDetails } from "../roomDetailsService";
 import { deriveTimeSlots } from "../mappers";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -20,26 +20,23 @@ type Action =
   | { type: "FETCH_START" }
   | { type: "FETCH_SUCCESS"; room: Room; bookings: Booking[] }
   | { type: "FETCH_ERROR"; error: string }
-  | { type: "BOOKINGS_START" }
-  | { type: "BOOKINGS_SUCCESS"; bookings: Booking[] }
-  | { type: "BOOKINGS_ERROR"; error: string }
   | { type: "SET_DATE"; date: string }
   | { type: "SELECT_SLOT"; index: number | null };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "FETCH_START":
-      return { ...state, isLoading: true, error: null };
+      return { ...state, isLoading: true, isLoadingBookings: true, error: null };
     case "FETCH_SUCCESS":
-      return { ...state, isLoading: false, room: action.room, bookings: action.bookings };
+      return {
+        ...state,
+        isLoading: false,
+        isLoadingBookings: false,
+        room: action.room,
+        bookings: action.bookings,
+      };
     case "FETCH_ERROR":
-      return { ...state, isLoading: false, error: action.error };
-    case "BOOKINGS_START":
-      return { ...state, isLoadingBookings: true, selectedSlotIndex: null };
-    case "BOOKINGS_SUCCESS":
-      return { ...state, isLoadingBookings: false, bookings: action.bookings };
-    case "BOOKINGS_ERROR":
-      return { ...state, isLoadingBookings: false, error: action.error };
+      return { ...state, isLoading: false, isLoadingBookings: false, error: action.error };
     case "SET_DATE":
       return { ...state, date: action.date, selectedSlotIndex: null };
     case "SELECT_SLOT":
@@ -60,48 +57,22 @@ export function useRoomDetails(roomId: string) {
     error: null,
   });
 
-  // Initial parallel fetch
-  useEffect(() => {
-    let cancelled = false;
+  const reload = useCallback(() => {
     dispatch({ type: "FETCH_START" });
 
-    loadRoomDetails(roomId, state.date)
+    void loadRoomDetails(roomId, state.date)
       .then(({ room, bookings }) => {
-        if (!cancelled) dispatch({ type: "FETCH_SUCCESS", room, bookings });
+        dispatch({ type: "FETCH_SUCCESS", room, bookings });
       })
       .catch((err: unknown) => {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : "Failed to load room details";
-          dispatch({ type: "FETCH_ERROR", error: message });
-        }
+        const message = err instanceof Error ? err.message : "Failed to load room details";
+        dispatch({ type: "FETCH_ERROR", error: message });
       });
-
-    return () => { cancelled = true; };
-  // Only on mount / roomId change — date changes use the bookings-only fetch below
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId]);
-
-  // Re-fetch bookings only when date changes (after initial load)
-  useEffect(() => {
-    if (state.isLoading || !state.room) return;
-
-    let cancelled = false;
-    dispatch({ type: "BOOKINGS_START" });
-
-    loadRoomBookings(roomId, state.date)
-      .then((bookings) => {
-        if (!cancelled) dispatch({ type: "BOOKINGS_SUCCESS", bookings });
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : "Failed to load bookings";
-          dispatch({ type: "BOOKINGS_ERROR", error: message });
-        }
-      });
-
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, state.date]);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   const slots = useMemo(
     () => deriveTimeSlots(state.bookings, state.date),
@@ -116,15 +87,8 @@ export function useRoomDetails(roomId: string) {
   const selectSlot = useCallback((index: number | null) => dispatch({ type: "SELECT_SLOT", index }), []);
 
   const retry = useCallback(() => {
-    dispatch({ type: "FETCH_START" });
-    loadRoomDetails(roomId, state.date)
-      .then(({ room, bookings }) => dispatch({ type: "FETCH_SUCCESS", room, bookings }))
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : "Failed to load room details";
-        dispatch({ type: "FETCH_ERROR", error: message });
-      });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId, state.date]);
+    reload();
+  }, [reload]);
 
   return {
     room: state.room,
