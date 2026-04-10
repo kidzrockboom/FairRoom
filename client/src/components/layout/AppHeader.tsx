@@ -3,15 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Bell, DoorOpen, LogOut, ChevronDown, iconPropsAction, iconProps } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/features/session/useSession";
 
@@ -72,8 +65,8 @@ function AppHeader({ mobileSidebarTrigger }: AppHeaderProps) {
             <Bell {...iconPropsAction} aria-hidden="true" />
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
+          <Popover>
+            <PopoverTrigger
               className="flex items-center gap-3 rounded-full px-2.5 py-2 outline-none transition-colors hover:bg-muted/70 focus-visible:bg-muted/70"
               aria-label="Open account menu"
             >
@@ -89,25 +82,42 @@ function AppHeader({ mobileSidebarTrigger }: AppHeaderProps) {
               </Avatar>
 
               <ChevronDown {...iconProps} aria-hidden="true" className="hidden text-muted-foreground sm:block" />
-            </DropdownMenuTrigger>
+            </PopoverTrigger>
 
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="space-y-0.5">
-                <div className="text-sm font-medium text-content">{fullName}</div>
-                <div className="text-xs font-normal text-muted-foreground">{email}</div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => {
-                  signOut();
-                  navigate("/login", { replace: true });
-                }}
-              >
-                <LogOut {...iconProps} aria-hidden="true" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <PopoverContent align="end" className="w-72 p-3">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="size-11">
+                    <AvatarFallback className="bg-brand-100 text-sm font-semibold text-brand-600">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-content">{fullName}</div>
+                    <div className="truncate text-xs text-muted-foreground">{email}</div>
+                    <Badge
+                      className="mt-1 border-border bg-muted-foreground/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+                      variant="outline"
+                    >
+                      {roleLabel}
+                    </Badge>
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full justify-start gap-2"
+                  onClick={() => {
+                    signOut();
+                    navigate("/login", { replace: true });
+                  }}
+                  variant="outline"
+                >
+                  <LogOut {...iconProps} aria-hidden="true" />
+                  Log out
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </header>
