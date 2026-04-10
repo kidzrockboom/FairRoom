@@ -1,6 +1,6 @@
 [build]
-builder = "nixpacks"
-buildCommand = "cargo build --release"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "./target/release/fairroom"
+startCommand = "./fairroom"
