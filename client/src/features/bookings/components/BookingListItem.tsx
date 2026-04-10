@@ -17,6 +17,7 @@ import { cancelMyBooking } from "../myBookingsService";
 import { Building2, Calendar, ChevronRight, Clock, Trash2, iconProps } from "@/lib/icons";
 import type { BookingListItemViewModel } from "../myBookingsMappers";
 import { cn } from "@/lib/utils";
+import BookingEditSheet from "./BookingEditSheet";
 
 type BookingListItemProps = {
   booking: BookingListItemViewModel;
@@ -30,6 +31,7 @@ const STATUS_STYLES: Record<BookingListItemViewModel["statusTone"], string> = {
 };
 
 export default function BookingListItem({ booking, onUpdated }: BookingListItemProps) {
+  const [editOpen, setEditOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -80,6 +82,18 @@ export default function BookingListItem({ booking, onUpdated }: BookingListItemP
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {booking.canEdit && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 px-3 text-xs font-semibold"
+              onClick={() => setEditOpen(true)}
+            >
+              Edit
+            </Button>
+          )}
+
           <Link
             to={`/bookings/${booking.id}`}
             className={cn(
@@ -105,6 +119,13 @@ export default function BookingListItem({ booking, onUpdated }: BookingListItemP
           )}
         </div>
       </article>
+
+      <BookingEditSheet
+        booking={booking}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onUpdated={onUpdated}
+      />
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>

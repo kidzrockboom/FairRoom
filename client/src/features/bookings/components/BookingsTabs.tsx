@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -11,26 +11,53 @@ import { useMyBookingsScope } from "../hooks/useMyBookingsScope";
 import BookingList from "./BookingList";
 
 type BookingTab = "upcoming" | "history";
+type BookingTabValue = BookingTab | "cancelled";
 
 const PAGE_SIZE_OPTIONS = [12, 24, 36];
 
 export default function BookingsTabs() {
-  const [activeTab, setActiveTab] = useState<BookingTab>("upcoming");
+  const [activeTab, setActiveTab] = useState<BookingTabValue>("upcoming");
   const [pageSize, setPageSize] = useState(12);
 
   const upcoming = useMyBookingsScope("active", pageSize);
   const history = useMyBookingsScope("past", pageSize);
+  const allBookings = useMyBookingsScope("all", 1000);
+  const cancelledBookings = useMemo(
+    () => allBookings.bookings.filter((booking) => booking.status === "cancelled"),
+    [allBookings.bookings],
+  );
+  const historyBookings = useMemo(
+    () => history.bookings.filter((booking) => booking.status !== "cancelled"),
+    [history.bookings],
+  );
+  const historyTotal = useMemo(
+    () => Math.max(0, history.total - cancelledBookings.length),
+    [cancelledBookings.length, history.total],
+  );
+
+  const refreshAll = useCallback(() => {
+    upcoming.retry();
+    history.retry();
+    allBookings.retry();
+  }, [allBookings, history, upcoming]);
 
   const totalLabel = useMemo(() => {
-    return activeTab === "upcoming" ? upcoming.total : history.total;
-  }, [activeTab, history.total, upcoming.total]);
+    if (activeTab === "upcoming") return upcoming.total;
+    if (activeTab === "history") return historyTotal;
+    return cancelledBookings.length;
+  }, [activeTab, cancelledBookings.length, historyTotal, upcoming.total]);
 
   return (
-    <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as BookingTab)} className="flex flex-col gap-4">
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as BookingTabValue)}
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <TabsList>
           <TabsTrigger value="upcoming">Upcoming ({upcoming.total})</TabsTrigger>
-          <TabsTrigger value="history">History ({history.total})</TabsTrigger>
+          <TabsTrigger value="history">History ({historyTotal})</TabsTrigger>
+          <TabsTrigger value="cancelled">Cancelled ({cancelledBookings.length})</TabsTrigger>
         </TabsList>
 
         <div className="flex items-center gap-2">
@@ -60,7 +87,7 @@ export default function BookingsTabs() {
           totalPages={upcoming.totalPages}
           onPageChange={upcoming.setPage}
           onRetry={upcoming.retry}
-          onRefresh={upcoming.retry}
+          onRefresh={refreshAll}
           emptyTitle="No upcoming bookings"
           emptyDescription="Your future reservations will appear here once they are confirmed."
         />
@@ -68,17 +95,33 @@ export default function BookingsTabs() {
 
       <TabsContent value="history" className="mt-0">
         <BookingList
-          bookings={history.bookings}
+          bookings={historyBookings}
           error={history.error}
           isLoading={history.isLoading}
           page={history.page}
           pageSize={history.pageSize}
-          totalPages={history.totalPages}
+          totalPages={Math.max(1, Math.ceil(historyTotal / history.pageSize))}
           onPageChange={history.setPage}
           onRetry={history.retry}
-          onRefresh={history.retry}
+          onRefresh={refreshAll}
           emptyTitle="No booking history"
-          emptyDescription="Completed and cancelled bookings will appear here."
+          emptyDescription="Completed bookings will appear here."
+        />
+      </TabsContent>
+
+      <TabsContent value="cancelled" className="mt-0">
+        <BookingList
+          bookings={cancelledBookings}
+          error={allBookings.error}
+          isLoading={allBookings.isLoading}
+          page={1}
+          pageSize={cancelledBookings.length || 1}
+          totalPages={1}
+          onPageChange={() => {}}
+          onRetry={allBookings.retry}
+          onRefresh={refreshAll}
+          emptyTitle="No cancelled bookings"
+          emptyDescription="Cancelled bookings will appear here."
         />
       </TabsContent>
 

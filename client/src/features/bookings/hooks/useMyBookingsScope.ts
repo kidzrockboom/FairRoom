@@ -17,7 +17,7 @@ type UseMyBookingsScopeResult = {
 };
 
 export function useMyBookingsScope(
-  scope: Exclude<BookingScope, "all">,
+  scope: BookingScope,
   initialPageSize = 12,
 ): UseMyBookingsScopeResult {
   const [bookings, setBookings] = useState<BookingListItemViewModel[]>([]);
@@ -53,10 +53,10 @@ export function useMyBookingsScope(
         const response = await loadMyBookings(scope, page, pageSize);
         if (cancelled) return;
 
-      setBookings(buildBookingListViewModels(response.items));
-      setTotal(response.total);
-      setPage(response.page);
-      setPageSizeState(response.pageSize);
+        setBookings(buildBookingListViewModels(response.items));
+        setTotal(response.total);
+        setPage(response.page);
+        setPageSizeState(response.pageSize);
       } catch (err: unknown) {
         if (cancelled) return;
 

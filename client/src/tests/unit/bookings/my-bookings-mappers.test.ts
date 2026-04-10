@@ -25,9 +25,13 @@ describe("my bookings mappers", () => {
       id: "booking-1",
       roomName: "Collaborative Study Suite 101",
       roomCode: "RM-101",
+      startsAt: "2026-04-10T09:00:00.000Z",
+      endsAt: "2026-04-10T10:00:00.000Z",
       scheduleLabel: "09:00 – 10:00 (Today)",
+      status: "active",
       statusLabel: "Active",
       statusTone: "success",
+      canEdit: true,
       canCancel: true,
     });
   });
@@ -47,6 +51,7 @@ describe("my bookings mappers", () => {
     }, new Date("2026-04-10T08:00:00.000Z"));
 
     expect(viewModel.canCancel).toBe(false);
+    expect(viewModel.canEdit).toBe(false);
     expect(viewModel.statusTone).toBe("muted");
   });
 });
