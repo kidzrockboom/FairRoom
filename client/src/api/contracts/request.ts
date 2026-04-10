@@ -55,3 +55,17 @@ export interface AdminBookingQueryParams {
   page?: number;
   pageSize?: number;
 }
+
+export interface AdminUserQueryParams {
+  search?: string;
+}
+
+export interface CreateStrikeRequest {
+  userId: string;
+  reason: string;
+  sourceBookingId?: string;
+}
+
+export interface RevokeStrikeRequest {
+  reason?: string;
+}

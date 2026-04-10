@@ -62,6 +62,35 @@ export interface AdminBookingListResponse {
   total: number;
 }
 
+export interface AdminUserItem {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  activeStrikes: number;
+  accountState: string;
+}
+
+export interface AdminUserListResponse {
+  items: AdminUserItem[];
+  total: number;
+}
+
+export interface StrikeResponse {
+  id: string;
+  userId: string;
+  reason: string;
+  createdAt: string;
+  revokedAt: string | null;
+  givenBy: string;
+}
+
+export interface AdminUserStrikesResponse {
+  userId: string;
+  activeStrikes: number;
+  items: StrikeResponse[];
+}
+
 export interface BookingDetailUser {
   id: string;
   fullName: string;
