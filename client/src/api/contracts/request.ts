@@ -44,3 +44,14 @@ export interface ReminderQueryParams {
   bookingId?: string;
   pageSize?: number;
 }
+
+export interface AdminBookingQueryParams {
+  search?: string;
+  status?: string;
+  userId?: string;
+  roomId?: string;
+  startsAt?: string;
+  endsAt?: string;
+  page?: number;
+  pageSize?: number;
+}

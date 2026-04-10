@@ -1,4 +1,4 @@
-import { Download, Plus } from "@/lib/icons";
+import { useAdminBookings } from "@/features/admin/bookings/hooks/useAdminBookings";
 import { Button } from "@/components/ui/button";
 import BookingsFilters from "@/features/admin/bookings/components/BookingsFilters";
 import BookingsSidebar from "@/features/admin/bookings/components/BookingsSidebar";
@@ -8,10 +8,28 @@ import {
   adminBookingsProTip,
   adminBookingsQuickLinks,
   adminBookingsRecentActivities,
-  adminBookingsRows,
 } from "@/features/admin/bookings/content";
+import { Download, Plus } from "@/lib/icons";
 
 function AdminBookingsPage() {
+  const {
+    bookings,
+    date,
+    error,
+    isLoading,
+    page,
+    pageSize,
+    search,
+    setDate,
+    setPage,
+    setPageSize,
+    setSearch,
+    setStatus,
+    status,
+    totalPages,
+    reset,
+  } = useAdminBookings();
+
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -34,10 +52,30 @@ function AdminBookingsPage() {
         </div>
       </header>
 
-      <BookingsFilters />
+      <BookingsFilters
+        search={search}
+        status={status}
+        date={date}
+        pageSize={pageSize}
+        onSearchChange={setSearch}
+        onStatusChange={setStatus}
+        onDateChange={setDate}
+        onPageSizeChange={setPageSize}
+        onReset={reset}
+      />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <BookingsTable rows={adminBookingsRows} />
+        <BookingsTable
+          rows={bookings}
+          error={error}
+          isLoading={isLoading}
+          page={page}
+          pageSize={pageSize}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          onRetry={reset}
+        />
         <BookingsSidebar
           quickLinks={adminBookingsQuickLinks}
           recentActivities={adminBookingsRecentActivities}

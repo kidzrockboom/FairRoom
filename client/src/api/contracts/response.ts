@@ -31,6 +31,37 @@ export interface BookingListResponse {
   total: number;
 }
 
+export interface AdminBookingUserSnippet {
+  id: string;
+  fullName: string;
+}
+
+export interface AdminBookingRoomSnippet {
+  id: string;
+  roomCode: string;
+  name: string;
+  location: string;
+}
+
+export interface AdminBookingItem {
+  id: string;
+  user: AdminBookingUserSnippet;
+  room: AdminBookingRoomSnippet;
+  startsAt: string;
+  endsAt: string;
+  status: string;
+  checkedIn: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminBookingListResponse {
+  items: AdminBookingItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface BookingDetailUser {
   id: string;
   fullName: string;
