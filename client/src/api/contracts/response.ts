@@ -40,7 +40,4 @@ export interface BookingListResponse {
   total: number;
 }
 
-export interface ReminderListResponse {
-  items: Reminder[];
-  total: number;
-}
+export type ReminderListResponse = Reminder[];

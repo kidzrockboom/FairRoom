@@ -4,7 +4,7 @@ import type {
   BookingListResponse,
   BookingScope,
   ReminderListResponse,
-  ReminderStatus,
+  ReminderQueryParams,
 } from "@/api/contracts";
 import { apiClient } from "../client";
 import { authHeaders } from "../auth-storage";
@@ -40,10 +40,16 @@ export async function getMyBookings(
   return data;
 }
 
-export async function getMyReminders(status?: ReminderStatus): Promise<ReminderListResponse> {
+export async function getMyReminders(
+  params: ReminderQueryParams = {},
+): Promise<ReminderListResponse> {
   const { data } = await apiClient.get<ReminderListResponse>("/me/reminders", {
     headers: authHeaders(),
-    params: status ? { status } : undefined,
+    params: {
+      ...(params.status ? { status: params.status } : {}),
+      ...(params.bookingId ? { bookingId: params.bookingId } : {}),
+      ...(params.pageSize ? { pageSize: params.pageSize } : {}),
+    },
   });
   return data;
 }

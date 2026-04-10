@@ -1,6 +1,12 @@
 import { Info, iconProps } from "@/lib/icons";
 
-export default function CheckInInstructions() {
+type CheckInInstructionsProps = {
+  checkInDeadlineLabel: string;
+};
+
+export default function CheckInInstructions({
+  checkInDeadlineLabel,
+}: CheckInInstructionsProps) {
   return (
     <div className="mx-6 my-0.5 rounded-lg border border-border bg-sidebar/50 px-4 py-4">
       <div className="flex items-center gap-2">
@@ -9,7 +15,7 @@ export default function CheckInInstructions() {
       </div>
       <p className="mt-2.5 text-[15px] leading-relaxed text-muted-foreground">
         Please arrive on time. You must scan the QR code located on the pod door within
-        15 minutes of your start time (by 14:15). Failure to check in will result in
+        15 minutes of your start time (by {checkInDeadlineLabel}). Failure to check in will result in
         automatic cancellation and a strike on your account.
       </p>
     </div>

@@ -24,6 +24,7 @@ describe("RoomDetailsPage", () => {
       name: "Collaborative Study Suite 101",
       location: "Library, 2nd Floor - East Wing",
       capacity: 6,
+      isActive: true,
       status: "operational",
       usageNotes: "Quiet workspace for group study",
       createdAt: "2026-04-10T10:00:00.000Z",

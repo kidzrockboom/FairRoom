@@ -17,12 +17,16 @@ describe("useSearchRooms", () => {
       items: [
         {
           id: "room-1",
+          roomCode: "RM-201",
           name: "Seminar Room A",
+          location: "Main Building, Floor 2",
           building: "Main Building",
           floor: "2",
           capacity: 12,
+          isActive: true,
           status: "operational",
           usageNotes: "Quiet space",
+          createdAt: "2026-04-10T00:00:00.000Z",
           amenities: [],
         },
       ],

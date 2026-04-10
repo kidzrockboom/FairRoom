@@ -20,6 +20,10 @@ export interface Room {
   capacity: number;
   isActive: boolean;
   createdAt: string;
+  building?: string;
+  floor?: string;
+  status?: "operational" | "disabled";
+  usageNotes?: string;
   amenities?: Amenity[];
   isAvailableForRequestedRange?: boolean;
 }
@@ -47,9 +51,9 @@ export interface Reminder {
   bookingId: string;
   channel: ReminderChannel;
   scheduledFor: string;
-  sentAt: string | null;
+  sentAt: string;
   status: ReminderStatus;
-  failureReason: string | null;
+  failureReason: string;
   createdAt: string;
 }
 

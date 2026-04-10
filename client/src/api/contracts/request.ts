@@ -1,3 +1,5 @@
+import type { ReminderStatus } from "./domain";
+
 export type BookingScope = "active" | "past" | "all";
 
 export interface RegisterRequest {
@@ -26,4 +28,10 @@ export interface CreateBookingRequest {
   endsAt: string;
   purpose: string;
   expectedAttendees: number;
+}
+
+export interface ReminderQueryParams {
+  status?: ReminderStatus;
+  bookingId?: string;
+  pageSize?: number;
 }
