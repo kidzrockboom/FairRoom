@@ -4,6 +4,8 @@ import type { Filters } from "./schemas";
 export function toSearchParams(
   filters: Filters,
   search: string,
+  page: number,
+  pageSize: number,
 ): SearchRoomsParams {
   const [startHour, endHour] = filters.timeRange;
 
@@ -20,6 +22,7 @@ export function toSearchParams(
     minCapacity: filters.capacity ?? undefined,
     startsAt,
     endsAt,
-    pageSize: 100,
+    page,
+    pageSize,
   };
 }

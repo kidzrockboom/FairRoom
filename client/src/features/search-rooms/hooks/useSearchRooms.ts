@@ -11,7 +11,7 @@ export type ActiveChip =
   | { kind: "filter"; id: "date" | "capacity" | "time"; label: string }
   | { kind: "amenity"; amenityId: string; label: string };
 
-const PAGE_SIZE = 9;
+const DEFAULT_PAGE_SIZE = 12;
 
 const DEFAULT_FILTERS: Filters = {
   date: "",
@@ -25,7 +25,9 @@ type State = {
   search: string;
   sort: SortKey;
   page: number;
+  pageSize: number;
   rooms: Room[];
+  totalRooms: number;
   isLoading: boolean;
   error: string | null;
 };
@@ -38,8 +40,9 @@ type Action =
   | { type: "SET_SEARCH"; payload: string }
   | { type: "SET_SORT"; payload: SortKey }
   | { type: "SET_PAGE"; payload: number }
+  | { type: "SET_PAGE_SIZE"; payload: number }
   | { type: "FETCH_START" }
-  | { type: "FETCH_SUCCESS"; payload: Room[] }
+  | { type: "FETCH_SUCCESS"; payload: { rooms: Room[]; totalRooms: number; page: number; pageSize: number } }
   | { type: "FETCH_ERROR"; payload: string };
 
 const initialState: State = {
@@ -47,7 +50,9 @@ const initialState: State = {
   search: "",
   sort: "capacity-asc",
   page: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
   rooms: [],
+  totalRooms: 0,
   isLoading: false,
   error: null,
 };
@@ -82,16 +87,26 @@ function reducer(state: State, action: Action): State {
       return { ...state, search: action.payload, page: 1 };
 
     case "SET_SORT":
-      return { ...state, sort: action.payload, page: 1 };
+      return { ...state, sort: action.payload };
 
     case "SET_PAGE":
       return { ...state, page: action.payload };
+
+    case "SET_PAGE_SIZE":
+      return { ...state, pageSize: action.payload, page: 1 };
 
     case "FETCH_START":
       return { ...state, isLoading: true, error: null };
 
     case "FETCH_SUCCESS":
-      return { ...state, isLoading: false, rooms: action.payload };
+      return {
+        ...state,
+        isLoading: false,
+        rooms: action.payload.rooms,
+        totalRooms: action.payload.totalRooms,
+        page: action.payload.page,
+        pageSize: action.payload.pageSize,
+      };
 
     case "FETCH_ERROR":
       return { ...state, isLoading: false, error: action.payload };
@@ -108,11 +123,20 @@ export function useSearchRooms() {
     let cancelled = false;
     dispatch({ type: "FETCH_START" });
 
-    const params = toSearchParams(state.filters, state.search);
+    const params = toSearchParams(state.filters, state.search, state.page, state.pageSize);
 
     fetchRooms(params)
-      .then((rooms) => {
-        if (!cancelled) dispatch({ type: "FETCH_SUCCESS", payload: rooms });
+      .then((response) => {
+        if (!cancelled)
+          dispatch({
+            type: "FETCH_SUCCESS",
+            payload: {
+              rooms: response.items,
+              totalRooms: response.total,
+              page: response.page,
+              pageSize: response.pageSize,
+            },
+          });
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -124,7 +148,7 @@ export function useSearchRooms() {
     return () => {
       cancelled = true;
     };
-  }, [state.filters, state.search]);
+  }, [state.filters, state.search, state.page, state.pageSize]);
 
   const amenityFiltered = useMemo(() => {
     if (state.filters.amenityIds.length === 0) return state.rooms;
@@ -142,12 +166,10 @@ export function useSearchRooms() {
     return copy.sort((a, b) => a.name.localeCompare(b.name));
   }, [amenityFiltered, state.sort]);
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(sorted.length / PAGE_SIZE)), [sorted]);
-
-  const currentPageRooms = useMemo(() => {
-    const start = (state.page - 1) * PAGE_SIZE;
-    return sorted.slice(start, start + PAGE_SIZE);
-  }, [sorted, state.page]);
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(state.totalRooms / state.pageSize)),
+    [state.totalRooms, state.pageSize],
+  );
 
   const activeChips = useMemo(() => {
     const chips: ActiveChip[] = [];
@@ -192,6 +214,10 @@ export function useSearchRooms() {
   const setSearch = useCallback((q: string) => dispatch({ type: "SET_SEARCH", payload: q }), []);
   const setSort = useCallback((s: SortKey) => dispatch({ type: "SET_SORT", payload: s }), []);
   const setPage = useCallback((p: number) => dispatch({ type: "SET_PAGE", payload: p }), []);
+  const setPageSize = useCallback(
+    (pageSize: number) => dispatch({ type: "SET_PAGE_SIZE", payload: pageSize }),
+    [],
+  );
   const retry = useCallback(() => dispatch({ type: "RESET" }), []);
 
   return {
@@ -199,10 +225,11 @@ export function useSearchRooms() {
     search: state.search,
     sort: state.sort,
     page: state.page,
+    pageSize: state.pageSize,
     isLoading: state.isLoading,
     error: state.error,
-    rooms: currentPageRooms,
-    totalRooms: sorted.length,
+    rooms: sorted,
+    totalRooms: state.totalRooms,
     totalPages,
     activeChips,
     patchFilters,
@@ -212,6 +239,7 @@ export function useSearchRooms() {
     setSearch,
     setSort,
     setPage,
+    setPageSize,
     retry,
   };
 }

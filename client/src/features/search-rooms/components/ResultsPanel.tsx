@@ -20,11 +20,13 @@ export default function ResultsPanel() {
     error,
     sort,
     page,
+    pageSize,
     totalPages,
     activeChips,
     setSearch,
     setSort,
     setPage,
+    setPageSize,
     removeChip,
     removeAmenity,
     resetFilters,
@@ -125,6 +127,16 @@ export default function ResultsPanel() {
             <option value="capacity-asc">Capacity (Low to High)</option>
             <option value="capacity-desc">Capacity (High to Low)</option>
             <option value="name-asc">Name (A to Z)</option>
+          </select>
+          <span className="hidden text-sm text-muted-foreground sm:block">Per page:</span>
+          <select
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="h-9 rounded-input border border-input bg-surface px-3 text-sm text-content focus:outline-none focus:ring-2 focus:ring-ring/50"
+          >
+            <option value={12}>12</option>
+            <option value={24}>24</option>
+            <option value={36}>36</option>
           </select>
         </div>
       </div>
