@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/data/sessionMock";
+import { useSession } from "@/features/session/useSession";
 
 type AppSidebarProps = {
   onNavigate?: () => void;
@@ -39,6 +39,7 @@ const adminItems: NavItem[] = [
 ];
 
 function AppSidebar({ onNavigate }: AppSidebarProps) {
+  const { currentUser, signOut } = useSession();
   const items = currentUser?.role === "admin" ? adminItems : studentItems;
 
   return (
@@ -83,7 +84,14 @@ function AppSidebar({ onNavigate }: AppSidebarProps) {
 
       <div className="px-3 pb-4">
         <Separator className="mb-4" />
-        <Button className="w-full justify-start" variant="outline-destructive">
+        <Button
+          className="w-full justify-start"
+          variant="outline-destructive"
+          onClick={() => {
+            signOut();
+            onNavigate?.();
+          }}
+        >
           <LogOut {...iconProps} aria-hidden="true" />
           Sign Out
         </Button>

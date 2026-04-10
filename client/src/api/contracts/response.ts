@@ -4,7 +4,13 @@ import type {
   Booking,
   Reminder,
   Room,
+  UserProfile,
 } from "./domain";
+
+export interface AuthResponse {
+  token: string;
+  user: UserProfile;
+}
 
 export interface AccountStatusResponse {
   activeStrikes: number;

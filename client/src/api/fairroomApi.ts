@@ -2,20 +2,25 @@ import axios from "axios";
 import type {
   AccountActivityListResponse,
   AccountStatusResponse,
+  AuthResponse,
   Booking,
   BookingListResponse,
   BookingScope,
   CreateBookingRequest,
+  LoginRequest,
   ReminderListResponse,
   ReminderStatus,
+  RegisterRequest,
   Room,
   RoomBookingsResponse,
   RoomSearchResponse,
   SearchRoomsParams,
+  UserProfile,
 } from "./contracts/index";
 
 const DEFAULT_API_URL = "https://fairroom-production.up.railway.app";
 const API_URL = import.meta.env.VITE_API_URL?.trim() || DEFAULT_API_URL;
+export const AUTH_TOKEN_STORAGE_KEY = "fairroom.authToken";
 
 const client = axios.create({
   baseURL: API_URL,
@@ -25,9 +30,35 @@ const client = axios.create({
   },
 });
 
+const readApiErrorMessage = (error: unknown, fallbackMessage: string) => {
+  if (!axios.isAxiosError(error)) {
+    return error instanceof Error ? error.message : fallbackMessage;
+  }
+
+  const responseData = error.response?.data;
+
+  if (typeof responseData === "string" && responseData.trim()) {
+    return responseData;
+  }
+
+  if (responseData && typeof responseData === "object") {
+    const maybeMessage = Reflect.get(responseData, "message");
+    if (typeof maybeMessage === "string" && maybeMessage.trim()) {
+      return maybeMessage;
+    }
+
+    const maybeError = Reflect.get(responseData, "error");
+    if (typeof maybeError === "string" && maybeError.trim()) {
+      return maybeError;
+    }
+  }
+
+  return error.message || fallbackMessage;
+};
+
 const authHeaders = () => {
   try {
-    const token = window.localStorage.getItem("fairroom.authToken");
+    const token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
     return token ? { Authorization: `Bearer ${token}` } : undefined;
   } catch {
     return undefined;
@@ -37,11 +68,60 @@ const authHeaders = () => {
 export const fairroomApi = {
   baseUrl: API_URL,
 
+  getAuthToken() {
+    try {
+      return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  },
+
+  setAuthToken(token: string) {
+    window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+  },
+
+  clearAuthToken() {
+    window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  },
+
+  async register(payload: RegisterRequest): Promise<AuthResponse> {
+    try {
+      const { data } = await client.post<AuthResponse>("/auth/register", payload);
+      return data;
+    } catch (error: unknown) {
+      throw new Error(readApiErrorMessage(error, "Failed to register"));
+    }
+  },
+
+  async login(payload: LoginRequest): Promise<AuthResponse> {
+    try {
+      const { data } = await client.post<AuthResponse>("/auth/login", payload);
+      return data;
+    } catch (error: unknown) {
+      throw new Error(readApiErrorMessage(error, "Failed to sign in"));
+    }
+  },
+
+  async getMe(): Promise<UserProfile> {
+    try {
+      const { data } = await client.get<UserProfile>("/me", {
+        headers: authHeaders(),
+      });
+      return data;
+    } catch (error: unknown) {
+      throw new Error(readApiErrorMessage(error, "Failed to load current user"));
+    }
+  },
+
   async getAccountStatus(): Promise<AccountStatusResponse> {
-    const { data } = await client.get<AccountStatusResponse>("/me/account-status", {
-      headers: authHeaders(),
-    });
-    return data;
+    try {
+      const { data } = await client.get<AccountStatusResponse>("/me/account-status", {
+        headers: authHeaders(),
+      });
+      return data;
+    } catch (error: unknown) {
+      throw new Error(readApiErrorMessage(error, "Failed to load account status"));
+    }
   },
 
   async getAccountActivities(): Promise<AccountActivityListResponse> {

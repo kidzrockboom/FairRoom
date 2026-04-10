@@ -1,5 +1,16 @@
 export type BookingScope = "active" | "past" | "all";
 
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface SearchRoomsParams {
   search?: string;
   minCapacity?: number;

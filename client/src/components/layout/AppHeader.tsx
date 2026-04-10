@@ -3,7 +3,7 @@ import { Bell, DoorOpen, iconPropsAction } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { currentUser } from "@/data/sessionMock";
+import { useSession } from "@/features/session/useSession";
 
 type AppHeaderProps = {
   mobileSidebarTrigger?: ReactNode;
@@ -19,6 +19,7 @@ function getInitials(fullName: string) {
 }
 
 function AppHeader({ mobileSidebarTrigger }: AppHeaderProps) {
+  const { currentUser } = useSession();
   const roleLabel = currentUser?.role === "admin" ? "Admin" : "Student";
   const fullName = currentUser?.fullName ?? "FairRoom User";
   const initials = getInitials(fullName);

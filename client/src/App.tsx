@@ -1,4 +1,4 @@
-import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import DashboardLayout from "./layout/DashboardLayout";
 import SearchRoomsPage from "./pages/SearchRoomsPage";
 import MyBookingsPage from "./pages/MyBookingsPage";
@@ -9,46 +9,41 @@ import RoomDetailsPage from "./pages/RoomDetailsPage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
 import AdminInventoryPage from "./pages/admin/AdminInventoryPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import { currentUser } from "./data/sessionMock";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import { AppEntryRedirect, RedirectIfAuthenticated, RequireAuth, RequireRole } from "@/features/session/guards";
 
 import AdminStrikesPage from "./pages/admin/AdminStrikesPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 
-type RequireRoleProps = {
-  role: "admin" | "student";
-  redirectTo: string;
-};
-
-function RequireRole({ role, redirectTo }: RequireRoleProps) {
-  if (currentUser?.role !== role) {
-    return <Navigate to={redirectTo} replace />;
-  }
-  return <Outlet />;
-}
-
 function App() {
-  const isAdmin = currentUser?.role === "admin";
-
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={isAdmin ? "/admin/overview" : "/search"} replace />} />
+      <Route path="/" element={<AppEntryRedirect />} />
 
-      <Route element={<DashboardLayout />}>
-        {/* student */}
-        <Route path="/search" element={<SearchRoomsPage />} />
-        <Route path="/rooms/:roomId" element={<RoomDetailsPage />} />
-        <Route path="/bookings/confirm" element={<ConfirmBookingPage />} />
-        <Route path="/bookings" element={<MyBookingsPage />} />
-        <Route path="/bookings/reminder" element={<BookingReminderPage />} />
-        <Route path="/account" element={<AccountStatusPage />} />
+      <Route element={<RedirectIfAuthenticated />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Route>
 
-        {/* admin */}
-        <Route element={<RequireRole role="admin" redirectTo="/search" />}>
-          <Route path="/admin/overview" element={<AdminBookingsPage />} />
-          <Route path="/admin/bookings" element={<AdminBookingsPage />} />
-          <Route path="/admin/inventory" element={<AdminInventoryPage />} />
-          <Route path="/admin/strikes" element={<AdminStrikesPage />} />
-          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+      <Route element={<RequireAuth />}>
+        <Route element={<DashboardLayout />}>
+          {/* student */}
+          <Route path="/search" element={<SearchRoomsPage />} />
+          <Route path="/rooms/:roomId" element={<RoomDetailsPage />} />
+          <Route path="/bookings/confirm" element={<ConfirmBookingPage />} />
+          <Route path="/bookings" element={<MyBookingsPage />} />
+          <Route path="/bookings/reminder" element={<BookingReminderPage />} />
+          <Route path="/account" element={<AccountStatusPage />} />
+
+          {/* admin */}
+          <Route element={<RequireRole role="admin" />}>
+            <Route path="/admin/overview" element={<AdminBookingsPage />} />
+            <Route path="/admin/bookings" element={<AdminBookingsPage />} />
+            <Route path="/admin/inventory" element={<AdminInventoryPage />} />
+            <Route path="/admin/strikes" element={<AdminStrikesPage />} />
+            <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+          </Route>
         </Route>
       </Route>
 
