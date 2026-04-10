@@ -9,51 +9,7 @@ A room booking system with a Rust/Axum backend and React/Vite frontend.
 | Frontend | https://fortunate-recreation-production.up.railway.app |
 | Backend  | https://fairroom-production.up.railway.app |
 
-## Frontend: Next Steps
-
-### 1. Implement Auth
-
-Add `register` and `login` functions to `src/api/fairroomApi.ts`:
-
-```ts
-async register(payload: { full_name: string; email: string; password: string }) {
-  const { data } = await client.post("/auth/register", payload);
-  return data; // { token, user }
-},
-
-async login(payload: { email: string; password: string }) {
-  const { data } = await client.post("/auth/login", payload);
-  return data; // { token, user }
-},
-```
-
-After a successful login or register, store the token:
-
-```ts
-localStorage.setItem("fairroom.authToken", data.token);
-```
-
-The `authHeaders()` helper in `fairroomApi.ts` already reads from that key, so all existing authenticated API calls (`/me`, `/bookings`, etc.) will work automatically.
-
-### 2. Build Login & Register Pages
-
-Wire the above functions to a login and register form. On success, redirect the user to the main app.
-
-### 3. Handle Token Expiry / Logout
-
-On logout, clear the token:
-
-```ts
-localStorage.removeItem("fairroom.authToken");
-```
-
-If the backend returns a `401`, redirect the user back to the login page.
-
-### 4. Remove Mock Fallbacks (optional but recommended)
-
-Every API call in `fairroomApi.ts` uses `withFallback` — if the real call fails, it silently returns mock data. Once the backend is fully integrated, consider removing the fallbacks so real errors surface instead of hiding behind fake data.
-
-### 5. Test Against the Live Backend
+###  Test Against the Live Backend
 
 Use the live backend URL above. A test account can be created via:
 
@@ -63,7 +19,7 @@ curl -X POST https://fairroom-production.up.railway.app/auth/register \
   -d '{"full_name": "Test User", "email": "test@example.com", "password": "password123"}'
 ```
 
-## API Reference
+## Basic API Reference's
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
