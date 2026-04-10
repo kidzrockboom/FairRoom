@@ -26,7 +26,8 @@ impl MigrationTrait for Migration {
                     .col(pk_uuid(User::Id).not_null().primary_key())
                     .col(string(User::FullName).not_null())
                     .col(string(User::Email).not_null().unique_key())
-                    .col(string(User::PasswordHash).not_null())
+                    .col(string(User::Password).not_null())
+                    .col(integer(User::Strikes).not_null())
                     .col(
                         ColumnDef::new(User::Role)
                             .enumeration(Role::RoleEnum, [Role::Admin, Role::Student])
@@ -35,7 +36,20 @@ impl MigrationTrait for Migration {
                     .col(timestamp(User::CreatedAt).not_null())
                     .to_owned(),
             )
-            .await
+            .await?;
+
+        // Populate the user table
+        manager.get_connection().execute_unprepared(r#"
+        CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+        INSERT INTO "user" (id, full_name, email, password, strikes, role, created_at)
+        VALUES
+        (uuid_generate_v4(), 'Alice Admin', 'alice@example.com', 'hashed_pw_1', 0, 'admin', NOW()),
+        (uuid_generate_v4(), 'Bob Student', 'bob@example.com', 'hashed_pw_2', 1, 'student', NOW()),
+        (uuid_generate_v4(), 'Charlie Student', 'charlie@example.com', 'hashed_pw_3', 0, 'student', NOW());
+        "#).await?;
+
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
@@ -55,8 +69,9 @@ enum User {
     Id,
     FullName,
     Email,
-    PasswordHash,
+    Password,
     Role,
+    Strikes,
     CreatedAt,
 }
 

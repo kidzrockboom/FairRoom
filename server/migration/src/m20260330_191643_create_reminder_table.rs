@@ -23,7 +23,7 @@ impl MigrationTrait for Migration {
         manager
             .create_type(
                 Type::create()
-                    .as_enum(ReminderStatus::StatusEnum)
+                    .as_enum(ReminderStatus::StatEnum)
                     .values([
                         ReminderStatus::Scheduled,
                         ReminderStatus::Delivered,
@@ -65,7 +65,7 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(Reminder::Status)
                             .enumeration(
-                                ReminderStatus::StatusEnum,
+                                ReminderStatus::StatEnum,
                                 [
                                     ReminderStatus::Scheduled,
                                     ReminderStatus::Delivered,
@@ -87,7 +87,7 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_type(Type::drop().name(ReminderStatus::StatusEnum).to_owned())
+            .drop_type(Type::drop().name(ReminderStatus::StatEnum).to_owned())
             .await?;
 
         manager
@@ -119,7 +119,7 @@ enum ReminderChannel {
 
 #[derive(Iden)]
 enum ReminderStatus {
-    StatusEnum,
+    StatEnum,
     Scheduled,
     Delivered,
     Failed,

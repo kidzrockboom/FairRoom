@@ -1,5 +1,5 @@
 [package]
-name = "server"
+name = "fairroom"
 version = "0.1.0"
 edition = "2024"
 
@@ -11,10 +11,16 @@ path = "src/main.rs"
 name = "fairroom"
 
 [dependencies]
+jsonwebtoken = "9"
 axum = "0.8.8"
 chrono = { version = "0.4.42", features = ["serde"] }
-sea-orm = { version = "2.0.0-rc", features = [ "sqlx-postgres", "runtime-async-std-native-tls", "macros" ] }
+config = "0.15.22"
+sea-orm = { version = "2.0.0-rc", features = [ "sqlx-postgres", "runtime-async-std-native-tls", "mock" , "macros" ] }
 serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1"
 tokio = { version = "1.49.0", features = ["full"] }
 tower = { version = "0.5.3", features = ["util"] }
+tower-http = { version = "0.6", features = ["cors"] }
 uuid = { version = "1.18.1", features = ["serde", "v4"] }
+argon2 = "0.5.3"
+migration = { path = "./migration/"}

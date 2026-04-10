@@ -5,6 +5,10 @@ mod m20220101_000002_create_room_table;
 mod m20220101_000003_create_booking_table;
 mod m20260330_191622_create_strike_table;
 mod m20260330_191643_create_reminder_table;
+mod m20260331_105253_create_room_time_slots_table;
+mod m20260409_000001_add_booking_time_slot_trigger;
+mod m20260410_000001_room_status_and_amenities;
+mod m20260410_000002_fix_strike_revoked_at;
 
 pub struct Migrator;
 
@@ -17,6 +21,10 @@ impl MigratorTrait for Migrator {
             Box::new(m20220101_000003_create_booking_table::Migration),
             Box::new(m20260330_191622_create_strike_table::Migration),
             Box::new(m20260330_191643_create_reminder_table::Migration),
+            Box::new(m20260331_105253_create_room_time_slots_table::Migration),
+            Box::new(m20260409_000001_add_booking_time_slot_trigger::Migration),
+            Box::new(m20260410_000001_room_status_and_amenities::Migration),
+            Box::new(m20260410_000002_fix_strike_revoked_at::Migration),
         ]
     }
 }
