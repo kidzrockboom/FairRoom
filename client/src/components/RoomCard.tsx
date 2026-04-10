@@ -1,4 +1,4 @@
-import type { Room } from "../types/types";
+import type { Room } from "@/types/types";
 
 type RoomCardProps = {
   room: Room;

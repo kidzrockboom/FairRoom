@@ -1,0 +1,70 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { Room } from "@/api/contracts";
+import { MapPin, Users, iconProps } from "@/lib/icons";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+
+type RoomCardProps = {
+  room: Room;
+};
+
+export default function RoomCard({ room }: RoomCardProps) {
+  const navigate = useNavigate();
+
+  return (
+    <article className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4">
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="text-[15px] font-semibold leading-snug text-content">
+          {room.name}
+        </h3>
+        <Badge
+          variant="outline"
+          className={cn(
+            "shrink-0 rounded-full border-transparent px-2.5 py-0.5 text-xs font-semibold",
+            room.isAvailableForRequestedRange
+              ? "bg-success-subtle text-success"
+              : "bg-[#f2f3f7] text-muted-foreground",
+          )}
+        >
+          {room.isAvailableForRequestedRange ? "Available" : "Busy"}
+        </Badge>
+      </div>
+
+      <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <MapPin {...iconProps} aria-hidden="true" className="shrink-0" />
+        {room.location}
+      </p>
+
+      <div className="flex flex-col gap-2">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-content">
+          <Users {...iconProps} aria-hidden="true" />
+          Cap: {room.capacity}
+        </span>
+
+        {room.amenities && room.amenities.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {room.amenities.map((amenity) => (
+              <Badge
+                key={amenity.id}
+                variant="outline"
+                className="rounded-full border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+              >
+                {amenity.label}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-auto grid grid-cols-2 gap-2 pt-1">
+        <Button variant="outline" size="sm" className="h-9 text-sm text-content" onClick={() => navigate(`/rooms/${room.id}`)}>
+          Details
+        </Button>
+        <Button size="sm" className="h-9 text-sm" onClick={() => navigate(`/rooms/${room.id}`)}>
+          Book Now
+        </Button>
+      </div>
+    </article>
+  );
+}
