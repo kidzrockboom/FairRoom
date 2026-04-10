@@ -1,7 +1,17 @@
 import type { ReactNode } from "react";
-import { Bell, DoorOpen, iconPropsAction } from "@/lib/icons";
+import { useNavigate } from "react-router-dom";
+import { Bell, DoorOpen, LogOut, ChevronDown, iconPropsAction, iconProps } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/features/session/useSession";
 
@@ -19,9 +29,11 @@ function getInitials(fullName: string) {
 }
 
 function AppHeader({ mobileSidebarTrigger }: AppHeaderProps) {
-  const { currentUser } = useSession();
+  const navigate = useNavigate();
+  const { currentUser, signOut } = useSession();
   const roleLabel = currentUser?.role === "admin" ? "Admin" : "Student";
   const fullName = currentUser?.fullName ?? "FairRoom User";
+  const email = currentUser?.email ?? "";
   const initials = getInitials(fullName);
 
   return (
@@ -60,16 +72,42 @@ function AppHeader({ mobileSidebarTrigger }: AppHeaderProps) {
             <Bell {...iconPropsAction} aria-hidden="true" />
           </Button>
 
-          <div className="flex items-center gap-3 rounded-full px-2.5 py-2">
-            <div className="hidden text-right sm:block">
-              <p className="max-w-40 truncate text-sm font-medium text-content">{fullName}</p>
-              <p className="text-xs text-muted-foreground">{roleLabel}</p>
-            </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className="flex items-center gap-3 rounded-full px-2.5 py-2 outline-none transition-colors hover:bg-muted/70 focus-visible:bg-muted/70"
+              aria-label="Open account menu"
+            >
+              <div className="hidden text-right sm:block">
+                <p className="max-w-40 truncate text-sm font-medium text-content">{fullName}</p>
+                <p className="text-xs text-muted-foreground">{roleLabel}</p>
+              </div>
 
-            <div className="flex size-10 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-600">
-              {initials}
-            </div>
-          </div>
+              <Avatar className="size-10">
+                <AvatarFallback className="bg-brand-100 text-sm font-semibold text-brand-600">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+
+              <ChevronDown {...iconProps} aria-hidden="true" className="hidden text-muted-foreground sm:block" />
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="space-y-0.5">
+                <div className="text-sm font-medium text-content">{fullName}</div>
+                <div className="text-xs font-normal text-muted-foreground">{email}</div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => {
+                  signOut();
+                  navigate("/login", { replace: true });
+                }}
+              >
+                <LogOut {...iconProps} aria-hidden="true" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
