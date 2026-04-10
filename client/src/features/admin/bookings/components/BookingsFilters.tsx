@@ -15,11 +15,9 @@ type BookingsFiltersProps = {
   search: string;
   status: AdminBookingStatusFilter;
   date: string;
-  pageSize: number;
   onSearchChange: (value: string) => void;
   onStatusChange: (value: AdminBookingStatusFilter) => void;
   onDateChange: (value: string) => void;
-  onPageSizeChange: (value: number) => void;
   onReset: () => void;
 };
 
@@ -31,15 +29,13 @@ export default function BookingsFilters({
   search,
   status,
   date,
-  pageSize,
   onSearchChange,
   onStatusChange,
   onDateChange,
-  onPageSizeChange,
   onReset,
 }: BookingsFiltersProps) {
   return (
-    <section className="grid gap-3 rounded-card border border-border bg-surface p-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto]">
+    <section className="grid gap-3 rounded-card border border-border bg-surface p-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
       <FieldShell>
         <Search
           {...iconProps}
@@ -73,7 +69,7 @@ export default function BookingsFilters({
       <Select value={status} onValueChange={(value) => onStatusChange(value as AdminBookingStatusFilter)}>
         <SelectTrigger
           aria-label="Booking status"
-          className="h-10 w-full rounded-md border-border bg-background px-3 text-sm text-muted-foreground shadow-none"
+          className="h-11 w-full rounded-md border-border bg-background px-3 text-sm text-muted-foreground shadow-none"
         >
           <SelectValue placeholder="Status: All" />
         </SelectTrigger>
@@ -83,17 +79,6 @@ export default function BookingsFilters({
           <SelectItem value="cancelled">Cancelled</SelectItem>
           <SelectItem value="completed">Completed</SelectItem>
           <SelectItem value="no_show">No-Show</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange(Number(value))}>
-        <SelectTrigger className="h-10 w-full rounded-md border-border bg-background px-3 text-sm text-muted-foreground shadow-none">
-          <SelectValue placeholder="Per page" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="10">10 per page</SelectItem>
-          <SelectItem value="12">12 per page</SelectItem>
-          <SelectItem value="24">24 per page</SelectItem>
         </SelectContent>
       </Select>
 

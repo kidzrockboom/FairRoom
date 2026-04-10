@@ -1,5 +1,4 @@
 import { useAdminBookings } from "@/features/admin/bookings/hooks/useAdminBookings";
-import { Button } from "@/components/ui/button";
 import BookingsFilters from "@/features/admin/bookings/components/BookingsFilters";
 import BookingsSidebar from "@/features/admin/bookings/components/BookingsSidebar";
 import BookingsTable from "@/features/admin/bookings/components/BookingsTable";
@@ -7,9 +6,7 @@ import {
   adminBookingsHeader,
   adminBookingsProTip,
   adminBookingsQuickLinks,
-  adminBookingsRecentActivities,
 } from "@/features/admin/bookings/content";
-import { Download, Plus } from "@/lib/icons";
 
 function AdminBookingsPage() {
   const {
@@ -39,28 +36,15 @@ function AdminBookingsPage() {
           </h1>
           <p className="text-sm text-muted-foreground">{adminBookingsHeader.subtitle}</p>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" className="h-9 gap-2 px-3 text-sm font-semibold shadow-none">
-            <Download data-icon="inline-start" />
-            {adminBookingsHeader.exportButtonLabel}
-          </Button>
-          <Button className="h-9 gap-2 px-3 text-sm font-semibold">
-            <Plus data-icon="inline-start" />
-            {adminBookingsHeader.newBookingButtonLabel}
-          </Button>
-        </div>
       </header>
 
       <BookingsFilters
         search={search}
         status={status}
         date={date}
-        pageSize={pageSize}
         onSearchChange={setSearch}
         onStatusChange={setStatus}
         onDateChange={setDate}
-        onPageSizeChange={setPageSize}
         onReset={reset}
       />
 
@@ -78,7 +62,6 @@ function AdminBookingsPage() {
         />
         <BookingsSidebar
           quickLinks={adminBookingsQuickLinks}
-          recentActivities={adminBookingsRecentActivities}
           proTip={adminBookingsProTip}
         />
       </div>

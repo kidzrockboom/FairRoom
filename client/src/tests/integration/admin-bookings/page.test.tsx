@@ -106,6 +106,13 @@ describe("AdminBookingsPage", () => {
     expect(screen.getAllByText("Study Room 1").length).toBeGreaterThan(0);
     expect(screen.getByText("ID: RM-201")).toBeInTheDocument();
     expect(screen.getAllByText("Campus North").length).toBeGreaterThan(0);
+    expect(screen.getByText("Quick Links")).toBeInTheDocument();
+    expect(screen.getByText("Pro Tip")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Export CSV" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "New Booking" })).not.toBeInTheDocument();
+    expect(screen.queryByText("System Settings")).not.toBeInTheDocument();
+    expect(screen.queryByText("4 Pending")).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText("Rows per page")).toHaveLength(1);
 
     const searchInput = screen.getByLabelText("Search user or room");
     fireEvent.change(searchInput, { target: { value: "Michael" } });

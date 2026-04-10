@@ -1,26 +1,20 @@
 import { ArrowUpRight, Clock, iconProps } from "@/lib/icons";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import type { AdminQuickLink, AdminRecentActivity } from "@/features/admin/bookings/content";
+import type { AdminQuickLink } from "@/features/admin/bookings/content";
 
 type BookingsSidebarProps = {
   quickLinks: AdminQuickLink[];
-  recentActivities: AdminRecentActivity[];
   proTip: string;
 };
 
 export default function BookingsSidebar({
   quickLinks,
-  recentActivities,
   proTip,
 }: BookingsSidebarProps) {
   return (
@@ -38,44 +32,10 @@ export default function BookingsSidebar({
               <Button
                 key={item.id}
                 variant="ghost"
-                className={cn(
-                  "h-auto w-full justify-between rounded-md px-2 py-2 text-left text-sm font-medium text-content hover:bg-muted/50",
-                )}
+                className="h-auto w-full justify-start rounded-md px-2 py-2 text-left text-sm font-medium text-content hover:bg-muted/50"
               >
                 <span>{item.label}</span>
-                {item.badge ? (
-                  <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-[10px] font-semibold">
-                    {item.badge}
-                  </Badge>
-                ) : null}
               </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="gap-0">
-        <CardHeader className="border-b border-border px-4 py-3">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold text-content">
-            <Clock {...iconProps} aria-hidden="true" className="text-muted-foreground" />
-            Recent Activity
-          </CardTitle>
-          <CardDescription className="text-xs text-muted-foreground">
-            Real-time system updates
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-4 py-3">
-          <div className="flex flex-col">
-            {recentActivities.map((item, index) => (
-              <div key={item.id}>
-                <div className="py-2">
-                  <p className="text-sm font-semibold text-content">{item.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {item.actor} • {item.when}
-                  </p>
-                </div>
-                {index < recentActivities.length - 1 ? <Separator /> : null}
-              </div>
             ))}
           </div>
         </CardContent>
