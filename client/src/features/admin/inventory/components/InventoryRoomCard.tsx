@@ -14,7 +14,7 @@ type InventoryRoomCardProps = {
 };
 
 function roomStateLabel(room: Room) {
-  return room.isActive ? "Operational" : "Disabled";
+  return room.status === "operational" ? "Operational" : "Disabled";
 }
 
 function capacityLabel(capacity: number) {
@@ -22,7 +22,7 @@ function capacityLabel(capacity: number) {
 }
 
 export default function InventoryRoomCard({ room, onEdit, onDelete }: InventoryRoomCardProps) {
-  const isOperational = room.isActive;
+  const isOperational = room.status === "operational";
 
   return (
     <Card

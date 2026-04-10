@@ -23,7 +23,6 @@ describe("useSearchRooms", () => {
           building: "Main Building",
           floor: "2",
           capacity: 12,
-          isActive: true,
           status: "operational",
           usageNotes: "Quiet space",
           createdAt: "2026-04-10T00:00:00.000Z",

@@ -40,4 +40,29 @@ export interface BookingListResponse {
   total: number;
 }
 
+export interface BookingDetailUser {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
+export interface BookingDetailRoom {
+  id: string;
+  roomCode: string;
+  name: string;
+  location: string;
+}
+
+export interface BookingDetailResponse {
+  id: string;
+  user: BookingDetailUser;
+  room: BookingDetailRoom;
+  startsAt: string;
+  endsAt: string;
+  status: string;
+  checkedIn: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ReminderListResponse = Reminder[];

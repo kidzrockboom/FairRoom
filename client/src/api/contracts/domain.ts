@@ -18,11 +18,10 @@ export interface Room {
   name: string;
   location: string;
   capacity: number;
-  isActive: boolean;
+  status: "operational" | "disabled";
   createdAt: string;
   building?: string;
   floor?: string;
-  status?: "operational" | "disabled";
   usageNotes?: string;
   amenities?: Amenity[];
   isAvailableForRequestedRange?: boolean;

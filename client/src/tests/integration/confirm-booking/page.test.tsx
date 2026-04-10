@@ -38,7 +38,7 @@ describe("ConfirmBookingPage", () => {
       name: "Collaborative Study Suite 101",
       location: "Library, 2nd Floor - East Wing",
       capacity: 6,
-      isActive: true,
+      status: "operational",
       createdAt: "2026-04-10T10:00:00.000Z",
       amenities: [],
     });
@@ -93,22 +93,7 @@ describe("ConfirmBookingPage", () => {
       });
     });
 
-    expect(navigateMock).toHaveBeenCalledWith("/bookings/reminder", {
-      state: {
-        booking: {
-          id: "booking-1",
-          roomId: "room-1",
-          roomCode: "RM-101",
-          roomName: "Collaborative Study Suite 101",
-          startsAt: "2026-04-10T09:00:00",
-          endsAt: "2026-04-10T10:00:00",
-          status: "active",
-          checkedIn: false,
-          createdAt: "2026-04-10T00:00:00.000Z",
-          updatedAt: "2026-04-10T00:00:00.000Z",
-        },
-      },
-    });
+    expect(navigateMock).toHaveBeenCalledWith("/bookings/booking-1");
   });
 
   it("shows a room load error when the backend request fails", async () => {

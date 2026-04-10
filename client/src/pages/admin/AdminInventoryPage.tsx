@@ -19,7 +19,7 @@ function AdminInventoryPage() {
 
   const summary = {
     totalSpaces: inventoryRooms.length,
-    activeNow: inventoryRooms.filter((room) => room.isActive).length,
+    activeNow: inventoryRooms.filter((room) => room.status === "operational").length,
   };
 
   function openAddRoom() {

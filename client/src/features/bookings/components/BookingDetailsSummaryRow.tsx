@@ -1,14 +1,14 @@
 import { Clock, MapPin, iconProps } from "@/lib/icons";
 
-type ReminderSummaryRowProps = {
+type BookingDetailsSummaryRowProps = {
   location: string;
   scheduleLabel: string;
 };
 
-export default function ReminderSummaryRow({
+export default function BookingDetailsSummaryRow({
   location,
   scheduleLabel,
-}: ReminderSummaryRowProps) {
+}: BookingDetailsSummaryRowProps) {
   return (
     <div className="grid grid-cols-1 divide-y divide-border md:grid-cols-2 md:divide-y-0 px-6 py-5">
       <div className="flex items-center gap-3 py-4 md:py-0 md:pr-6">
