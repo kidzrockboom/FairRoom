@@ -124,10 +124,7 @@ describe("MyBookingsPage", () => {
 
     await user.click(screen.getByRole("tab", { name: "Upcoming (1)" }));
     await user.click(screen.getByRole("button", { name: "Edit" }));
-    await user.clear(screen.getByLabelText("Start time"));
-    await user.type(screen.getByLabelText("Start time"), "2026-04-10T10:00");
-    await user.clear(screen.getByLabelText("End time"));
-    await user.type(screen.getByLabelText("End time"), "2026-04-10T11:00");
+    await user.click(screen.getByRole("button", { name: /10:00 AM/ }));
     await user.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => {
