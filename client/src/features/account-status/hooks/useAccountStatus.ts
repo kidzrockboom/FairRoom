@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import type { AccountStatusResponse } from "@/api/contracts";
+import type { AccountActivityItem, AccountStatusResponse } from "@/api/contracts";
 import { loadAccountStatusOverview } from "../accountStatusService";
 
 export function useAccountStatus() {
   const [accountStatus, setAccountStatus] = useState<AccountStatusResponse | null>(null);
-  const [accountActivities, setAccountActivities] = useState<string[]>([]);
+  const [accountActivities, setAccountActivities] = useState<AccountActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

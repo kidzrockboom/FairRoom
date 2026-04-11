@@ -1,4 +1,4 @@
-import type { AccountState, Booking, Reminder, Room, UserProfile } from "./domain";
+import type { AccountActivityItem, AccountState, Booking, Reminder, Room, UserProfile } from "./domain";
 
 export interface AmenityResponse {
   id: string;
@@ -21,7 +21,9 @@ export interface AccountStatusResponse {
   accountState: AccountState;
 }
 
-export type AccountActivityListResponse = string[];
+export interface AccountActivityListResponse {
+  items: AccountActivityItem[];
+}
 
 export interface RoomSearchResponse {
   items: Room[];
