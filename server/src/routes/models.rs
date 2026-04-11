@@ -46,7 +46,7 @@ pub fn api_error(
 }
 
 pub fn internal_error(e: impl std::fmt::Display) -> ApiError {
-    let _ = e;
+    eprintln!("[internal_error] {e}");
     api_error(
         StatusCode::INTERNAL_SERVER_ERROR,
         "INTERNAL_SERVER_ERROR",
@@ -153,6 +153,25 @@ pub struct AccountStatusResponse {
     pub active_strikes: i64,
     pub booking_eligible: bool,
     pub account_state: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountActivityItem {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub activity_type: String,
+    pub title: String,
+    pub description: String,
+    pub occurred_at: String,
+    pub status: String,
+    pub source_entity_type: String,
+    pub source_entity_id: String,
+}
+
+#[derive(Serialize)]
+pub struct AccountActivitiesResponse {
+    pub items: Vec<AccountActivityItem>,
 }
 
 // ── Booking requests ──────────────────────────────────────────────────────────

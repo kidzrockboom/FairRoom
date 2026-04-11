@@ -830,7 +830,7 @@ pub async fn admin_get_room_usage(
         SELECT
             r.room_code AS key,
             COUNT(b.id) AS total_bookings,
-            COALESCE(SUM(EXTRACT(EPOCH FROM (b.ends_at - b.starts_at)) / 3600), 0) AS total_hours,
+            COALESCE(SUM(EXTRACT(EPOCH FROM (b.ends_at - b.starts_at)) / 3600), 0)::FLOAT8 AS total_hours,
             COUNT(b.id) FILTER (WHERE b.status = 'no_show') AS no_show_count
         FROM booking b
         JOIN room r ON r.id = b.room_id

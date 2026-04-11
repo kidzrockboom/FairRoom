@@ -72,10 +72,102 @@ pub async fn get_account_status(
 }
 
 pub async fn get_account_activities(
-    _state: State<DatabaseConnection>,
-    _auth: AuthUser,
-) -> Json<Vec<String>> {
-    Json(vec![])
+    State(db): State<DatabaseConnection>,
+    auth: AuthUser,
+) -> ApiResult<Json<AccountActivitiesResponse>> {
+    // Fetch user's bookings with room info
+    let bookings = booking::Entity::find()
+        .filter(booking::Column::UserId.eq(auth.user_id))
+        .all(&db)
+        .await
+        .map_err(internal_error)?;
+
+    let room_ids: Vec<Uuid> = bookings.iter().map(|b| b.room_id).collect();
+    let rooms: std::collections::HashMap<Uuid, room::Model> = room::Entity::find()
+        .filter(room::Column::Id.is_in(room_ids))
+        .all(&db)
+        .await
+        .map_err(internal_error)?
+        .into_iter()
+        .map(|r| (r.id, r))
+        .collect();
+
+    // Fetch user's strikes
+    let strikes = strike::Entity::find()
+        .filter(strike::Column::UserId.eq(auth.user_id))
+        .all(&db)
+        .await
+        .map_err(internal_error)?;
+
+    let mut items: Vec<AccountActivityItem> = Vec::new();
+
+    for b in &bookings {
+        let room_code = rooms
+            .get(&b.room_id)
+            .map(|r| r.room_code.as_str())
+            .unwrap_or("Unknown");
+        let starts = b.starts_at.and_utc().format("%Y-%m-%d %H:%M").to_string();
+        let ends = b.ends_at.and_utc().format("%H:%M").to_string();
+
+        let (activity_type, title, description, status) = match status_to_str(&b.status) {
+            "cancelled" => (
+                "booking_cancelled",
+                "Booking cancelled",
+                format!(
+                    "Room {} booking for {} to {} was cancelled.",
+                    room_code, starts, ends
+                ),
+                "cancelled",
+            ),
+            "no_show" => (
+                "booking_no_show",
+                "No-show recorded",
+                format!("You did not check in for room {} on {}.", room_code, starts),
+                "incident",
+            ),
+            "completed" => (
+                "booking_completed",
+                "Booking completed",
+                format!("Room {} booked for {} to {}.", room_code, starts, ends),
+                "completed",
+            ),
+            _ => (
+                "booking_created",
+                "Booking confirmed",
+                format!("Room {} booked for {} to {}.", room_code, starts, ends),
+                "completed",
+            ),
+        };
+
+        items.push(AccountActivityItem {
+            id: b.id.to_string(),
+            activity_type: activity_type.to_string(),
+            title: title.to_string(),
+            description,
+            occurred_at: b.created_at.and_utc().to_rfc3339(),
+            status: status.to_string(),
+            source_entity_type: "booking".to_string(),
+            source_entity_id: b.id.to_string(),
+        });
+    }
+
+    for s in &strikes {
+        items.push(AccountActivityItem {
+            id: s.id.to_string(),
+            activity_type: "strike_recorded".to_string(),
+            title: "Strike recorded".to_string(),
+            description: s.reason.clone(),
+            occurred_at: s.created_at.and_utc().to_rfc3339(),
+            status: "incident".to_string(),
+            source_entity_type: "strike".to_string(),
+            source_entity_id: s.id.to_string(),
+        });
+    }
+
+    // Sort by occurredAt descending (most recent first)
+    items.sort_by(|a, b| b.occurred_at.cmp(&a.occurred_at));
+
+    Ok(Json(AccountActivitiesResponse { items }))
 }
 
 pub async fn get_my_bookings(
