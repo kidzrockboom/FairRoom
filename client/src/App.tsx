@@ -3,7 +3,7 @@ import DashboardLayout from "./layout/DashboardLayout";
 import SearchRoomsPage from "./pages/SearchRoomsPage";
 import MyBookingsPage from "./pages/MyBookingsPage";
 import AccountStatusPage from "./pages/AccountStatusPage";
-import BookingReminderPage from "./pages/BookingReminderPage";
+import BookingDetailsPage from "./pages/BookingDetailsPage";
 import ConfirmBookingPage from "./pages/ConfirmBookingPage";
 import RoomDetailsPage from "./pages/RoomDetailsPage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
@@ -33,7 +33,7 @@ function App() {
           <Route path="/rooms/:roomId" element={<RoomDetailsPage />} />
           <Route path="/bookings/confirm" element={<ConfirmBookingPage />} />
           <Route path="/bookings" element={<MyBookingsPage />} />
-          <Route path="/bookings/reminder" element={<BookingReminderPage />} />
+          <Route path="/bookings/:bookingId" element={<BookingDetailsPage />} />
           <Route path="/account" element={<AccountStatusPage />} />
 
           {/* admin */}

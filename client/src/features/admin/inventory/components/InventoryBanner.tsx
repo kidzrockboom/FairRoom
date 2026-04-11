@@ -3,7 +3,11 @@ import { CheckCircle, X, iconProps } from "@/lib/icons";
 
 import { inventorySyncMessage } from "@/features/admin/inventory/content";
 
-export default function InventoryBanner() {
+type InventoryBannerProps = {
+  onDismiss?: () => void;
+};
+
+export default function InventoryBanner({ onDismiss }: InventoryBannerProps) {
   return (
     <div className="flex items-start justify-between gap-4 rounded-card border border-border bg-surface px-4 py-3">
       <div className="flex items-start gap-3">
@@ -22,6 +26,7 @@ export default function InventoryBanner() {
         className="shrink-0 text-muted-foreground"
         size="icon-sm"
         variant="ghost"
+        onClick={onDismiss}
       >
         <X aria-hidden="true" />
       </Button>

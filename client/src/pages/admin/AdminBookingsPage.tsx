@@ -1,5 +1,4 @@
-import { Download, Plus } from "@/lib/icons";
-import { Button } from "@/components/ui/button";
+import { useAdminBookings } from "@/features/admin/bookings/hooks/useAdminBookings";
 import BookingsFilters from "@/features/admin/bookings/components/BookingsFilters";
 import BookingsSidebar from "@/features/admin/bookings/components/BookingsSidebar";
 import BookingsTable from "@/features/admin/bookings/components/BookingsTable";
@@ -7,11 +6,27 @@ import {
   adminBookingsHeader,
   adminBookingsProTip,
   adminBookingsQuickLinks,
-  adminBookingsRecentActivities,
-  adminBookingsRows,
 } from "@/features/admin/bookings/content";
 
 function AdminBookingsPage() {
+  const {
+    bookings,
+    date,
+    error,
+    isLoading,
+    page,
+    pageSize,
+    search,
+    setDate,
+    setPage,
+    setPageSize,
+    setSearch,
+    setStatus,
+    status,
+    totalPages,
+    reset,
+  } = useAdminBookings();
+
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -21,26 +36,32 @@ function AdminBookingsPage() {
           </h1>
           <p className="text-sm text-muted-foreground">{adminBookingsHeader.subtitle}</p>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" className="h-9 gap-2 px-3 text-sm font-semibold shadow-none">
-            <Download data-icon="inline-start" />
-            {adminBookingsHeader.exportButtonLabel}
-          </Button>
-          <Button className="h-9 gap-2 px-3 text-sm font-semibold">
-            <Plus data-icon="inline-start" />
-            {adminBookingsHeader.newBookingButtonLabel}
-          </Button>
-        </div>
       </header>
 
-      <BookingsFilters />
+      <BookingsFilters
+        search={search}
+        status={status}
+        date={date}
+        onSearchChange={setSearch}
+        onStatusChange={setStatus}
+        onDateChange={setDate}
+        onReset={reset}
+      />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <BookingsTable rows={adminBookingsRows} />
+        <BookingsTable
+          rows={bookings}
+          error={error}
+          isLoading={isLoading}
+          page={page}
+          pageSize={pageSize}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          onRetry={reset}
+        />
         <BookingsSidebar
           quickLinks={adminBookingsQuickLinks}
-          recentActivities={adminBookingsRecentActivities}
           proTip={adminBookingsProTip}
         />
       </div>

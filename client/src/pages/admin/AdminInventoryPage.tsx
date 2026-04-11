@@ -1,38 +1,37 @@
 import { useState } from "react";
 
 import InventoryAddRoomCard from "@/features/admin/inventory/components/InventoryAddRoomCard";
-import InventoryDeleteDialog from "@/features/admin/inventory/components/InventoryDeleteDialog";
 import InventoryBanner from "@/features/admin/inventory/components/InventoryBanner";
 import InventoryRoomCard from "@/features/admin/inventory/components/InventoryRoomCard";
 import InventoryRoomSheet from "@/features/admin/inventory/components/InventoryRoomSheet";
 import InventoryStats from "@/features/admin/inventory/components/InventoryStats";
-import {
-  inventoryHeader,
-  inventoryRooms,
-} from "@/features/admin/inventory/content";
+import { inventoryHeader } from "@/features/admin/inventory/content";
+import { useAdminInventory } from "@/features/admin/inventory/hooks/useAdminInventory";
+import ErrorBlock from "@/components/ui/error";
+import Loading from "@/components/ui/loading";
+import Empty from "@/components/ui/empty";
 
 function AdminInventoryPage() {
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [sheetMode, setSheetMode] = useState<"add" | "edit">("add");
-  const [activeRoom, setActiveRoom] = useState<(typeof inventoryRooms)[number] | null>(null);
-  const [deleteRoom, setDeleteRoom] = useState<(typeof inventoryRooms)[number] | null>(null);
-
-  const summary = {
-    totalSpaces: inventoryRooms.length,
-    activeNow: inventoryRooms.filter((room) => room.isActive).length,
-  };
-
-  function openAddRoom() {
-    setActiveRoom(null);
-    setSheetMode("add");
-    setSheetOpen(true);
-  }
-
-  function openEditRoom(room: (typeof inventoryRooms)[number]) {
-    setActiveRoom(room);
-    setSheetMode("edit");
-    setSheetOpen(true);
-  }
+  const [showBanner, setShowBanner] = useState(true);
+  const {
+    amenities,
+    closeSheet,
+    error,
+    handleCreateAmenity,
+    handleSaveRoom,
+    handleToggleRoomStatus,
+    isLoading,
+    isSaving,
+    openAddRoom,
+    openEditRoom,
+    refreshInventory,
+    rooms,
+    saveError,
+    sheetMode,
+    sheetOpen,
+    selectedRoom,
+    summary,
+  } = useAdminInventory();
 
   return (
     <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
@@ -47,40 +46,50 @@ function AdminInventoryPage() {
         <InventoryStats activeNow={summary.activeNow} totalSpaces={summary.totalSpaces} />
       </header>
 
-      <InventoryBanner />
+      {showBanner && <InventoryBanner onDismiss={() => setShowBanner(false)} />}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <InventoryAddRoomCard onClick={openAddRoom} />
-        {inventoryRooms.map((room) => (
-          <InventoryRoomCard
-            key={room.id}
-            room={room}
-            onDelete={setDeleteRoom}
-            onEdit={openEditRoom}
-          />
-        ))}
-      </section>
+      {isLoading ? (
+        <Loading className="min-h-[220px]" message="Loading room inventory..." />
+      ) : error ? (
+        <ErrorBlock className="min-h-[220px]" message={error} onRetry={refreshInventory} />
+      ) : (
+        <>
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <InventoryAddRoomCard onClick={openAddRoom} />
+            {rooms.map((room) => (
+              <InventoryRoomCard
+                key={room.id}
+                room={room}
+                onEdit={openEditRoom}
+                onToggleStatus={handleToggleRoomStatus}
+              />
+            ))}
+          </section>
+
+          {rooms.length === 0 && (
+            <Empty
+              className="min-h-[220px]"
+              description="Add a room to start managing the inventory."
+              title="No rooms have been added yet"
+              action={{ label: "Add New Room", onClick: openAddRoom }}
+            />
+          )}
+        </>
+      )}
 
       <InventoryRoomSheet
+        amenityOptions={amenities}
+        error={saveError}
+        isSubmitting={isSaving}
         mode={sheetMode}
+        onCancel={closeSheet}
+        onCreateAmenity={handleCreateAmenity}
         onOpenChange={(open) => {
-          setSheetOpen(open);
-          if (!open) {
-            setActiveRoom(null);
-          }
+          if (!open) closeSheet();
         }}
+        onSubmit={handleSaveRoom}
         open={sheetOpen}
-        room={activeRoom}
-      />
-
-      <InventoryDeleteDialog
-        open={Boolean(deleteRoom)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDeleteRoom(null);
-          }
-        }}
-        room={deleteRoom}
+        room={selectedRoom}
       />
     </div>
   );

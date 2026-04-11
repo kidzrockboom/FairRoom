@@ -1,62 +1,15 @@
-import { useEffect, useState } from "react";
-import type { AccountStatusResponse } from "@/api/contracts";
-import { fairroomApi } from "@/api/fairroomApi";
 import ErrorBlock from "@/components/ui/error";
 import Loading from "@/components/ui/loading";
 import AccountQuickActions from "@/features/account-status/components/AccountQuickActions";
 import AccountStandingCard from "@/features/account-status/components/AccountStandingCard";
 import FairUsePolicySection from "@/features/account-status/components/FairUsePolicySection";
 import RecentActivitySection from "@/features/account-status/components/RecentActivitySection";
+import { getStandingLabel, getStandingMessage } from "@/features/account-status/accountStatusMappers";
+import { useAccountStatus } from "@/features/account-status/hooks/useAccountStatus";
 
 function AccountStatusPage() {
-  const [accountStatus, setAccountStatus] = useState<AccountStatusResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const maxStrikes = 3;
-
-  const loadAccountStatus = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await fairroomApi.getAccountStatus();
-      setAccountStatus(data);
-    } catch (loadError: unknown) {
-      setError(loadError instanceof Error ? loadError.message : "Failed to load account status");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const data = await fairroomApi.getAccountStatus();
-        if (!cancelled) {
-          setAccountStatus(data);
-        }
-      } catch (loadError: unknown) {
-        if (!cancelled) {
-          setError(
-            loadError instanceof Error ? loadError.message : "Failed to load account status",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { accountStatus, accountActivities, error, isLoading, reload } = useAccountStatus();
 
   if (isLoading) {
     return (
@@ -69,24 +22,14 @@ function AccountStatusPage() {
   if (error || !accountStatus) {
     return (
       <div className="flex w-full items-center justify-center px-6 py-16">
-        <ErrorBlock message={error ?? "Account status is unavailable"} onRetry={loadAccountStatus} />
+        <ErrorBlock message={error ?? "Account status is unavailable"} onRetry={reload} />
       </div>
     );
   }
 
   const strikeCount = accountStatus.activeStrikes;
-  const standingLabel =
-    accountStatus.accountState === "restricted"
-      ? "Restricted"
-      : accountStatus.accountState === "warned"
-        ? "Account Warned"
-        : "Good Standing";
-  const standingMessage =
-    accountStatus.accountState === "restricted"
-      ? "Booking access is currently paused."
-      : accountStatus.accountState === "warned"
-        ? "Your account needs attention."
-        : "Your account is in great shape!";
+  const standingLabel = getStandingLabel(accountStatus.accountState);
+  const standingMessage = getStandingMessage(accountStatus.accountState);
 
   return (
     <div className="mx-auto flex w-full max-w-[860px] flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
@@ -110,7 +53,7 @@ function AccountStatusPage() {
 
       <FairUsePolicySection />
 
-      <RecentActivitySection />
+      <RecentActivitySection items={accountActivities} />
     </div>
   );
 }

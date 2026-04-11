@@ -1,58 +1,39 @@
+import { Badge } from "@/components/ui/badge";
 import { Clock, iconProps } from "@/lib/icons";
-import { cn } from "@/lib/utils";
+import type { AccountActivityItem } from "@/api/contracts";
 
-type ActivityStatus = "incident" | "completed";
-
-type ActivityItem = {
-  title: string;
-  description: string;
-  dateLabel: string;
-  status: ActivityStatus;
+type RecentActivitySectionProps = {
+  items: AccountActivityItem[];
 };
 
-const ACTIVITIES: ActivityItem[] = [
-  {
-    title: "Strike Added",
-    description: "No-show for Room 402 (14:00 - 15:30)",
-    dateLabel: "Oct 24, 2023",
-    status: "incident",
-  },
-  {
-    title: "Successful Booking",
-    description: "Checked in for Room 101 (09:00 - 10:00)",
-    dateLabel: "Oct 20, 2023",
-    status: "completed",
-  },
-  {
-    title: "Successful Booking",
-    description: "Checked in for Study Pod A (16:00 - 18:00)",
-    dateLabel: "Oct 15, 2023",
-    status: "completed",
-  },
-  {
-    title: "Strike Added",
-    description: "Late cancellation (Room 205)",
-    dateLabel: "Oct 12, 2023",
-    status: "incident",
-  },
-];
+function getStatusBadgeClassName(status: string) {
+  if (status === "incident") {
+    return "border-transparent bg-red-100 text-red-700 hover:bg-red-100";
+  }
 
-function ActivityBadge({ status }: { status: ActivityStatus }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]",
-        status === "incident"
-          ? "border-destructive/20 bg-destructive/8 text-destructive"
-          : "border-border bg-surface text-muted-foreground",
-      )}
-    >
-      {status === "incident" ? "Incident" : "Completed"}
-    </span>
-  );
+  if (status === "completed") {
+    return "border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100";
+  }
+
+  if (status === "cancelled") {
+    return "border-transparent bg-amber-100 text-amber-700 hover:bg-amber-100";
+  }
+
+  return "border-transparent bg-muted text-muted-foreground hover:bg-muted";
 }
 
-export default function RecentActivitySection() {
+export default function RecentActivitySection({ items }: RecentActivitySectionProps) {
+  const activityItems = Array.isArray(items) ? items : [];
+
+  const formatOccurredAt = (occurredAt: string) =>
+    new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(occurredAt));
+
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
@@ -67,25 +48,36 @@ export default function RecentActivitySection() {
       </div>
 
       <div className="overflow-hidden rounded-card border border-border bg-surface">
-        {ACTIVITIES.map((item, index) => (
-          <article
-            key={`${item.title}-${item.dateLabel}`}
-            className={cn(
-              "grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center",
-              index !== ACTIVITIES.length - 1 && "border-b border-border",
-            )}
-          >
-            <div>
-              <h3 className="text-sm font-semibold text-content">{item.title}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>
-            </div>
+        {activityItems.length === 0 ? (
+          <div className="px-4 py-5">
+            <h3 className="text-sm font-semibold text-content">No recent account activity yet.</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Account updates will appear here once your bookings or strikes create activity.
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {activityItems.map((item) => (
+              <li key={item.id} className="space-y-2 px-4 py-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-semibold text-content">{item.title}</h3>
+                    <p className="text-sm leading-6 text-muted-foreground">{item.description}</p>
+                  </div>
 
-            <div className="flex items-start gap-3 md:flex-col md:items-end md:gap-1">
-              <span className="text-[11px] font-medium text-muted-foreground">{item.dateLabel}</span>
-              <ActivityBadge status={item.status} />
-            </div>
-          </article>
-        ))}
+                  <Badge
+                    variant="secondary"
+                    className={`rounded-full px-2.5 py-0.5 text-[11px] ${getStatusBadgeClassName(item.status)}`}
+                  >
+                    {item.status}
+                  </Badge>
+                </div>
+
+                <p className="text-xs text-muted-foreground">{formatOccurredAt(item.occurredAt)}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

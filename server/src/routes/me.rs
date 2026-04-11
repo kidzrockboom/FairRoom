@@ -5,8 +5,8 @@ use axum::{
 };
 use chrono::Utc;
 use sea_orm::{
-    ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect,
+    ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect,
 };
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -19,9 +19,13 @@ const DEFAULT_PAGE_SIZE: u64 = 20;
 pub const SUSPENSION_THRESHOLD: i64 = 3;
 
 fn derive_account_state(active_strikes: i64) -> &'static str {
-    if active_strikes >= 3 { "restricted" }
-    else if active_strikes == 2 { "warned" }
-    else { "good" }
+    if active_strikes >= 3 {
+        "restricted"
+    } else if active_strikes == 2 {
+        "warned"
+    } else {
+        "good"
+    }
 }
 
 pub async fn get_me(
@@ -32,7 +36,14 @@ pub async fn get_me(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "USER_NOT_FOUND", "User not found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "USER_NOT_FOUND",
+                "User not found.",
+                None,
+            )
+        })?;
 
     Ok(Json(user_to_response(&user)))
 }
@@ -91,7 +102,8 @@ pub async fn get_account_activities(
     let mut items: Vec<AccountActivityItem> = Vec::new();
 
     for b in &bookings {
-        let room_code = rooms.get(&b.room_id)
+        let room_code = rooms
+            .get(&b.room_id)
             .map(|r| r.room_code.as_str())
             .unwrap_or("Unknown");
         let starts = b.starts_at.and_utc().format("%Y-%m-%d %H:%M").to_string();
@@ -101,7 +113,10 @@ pub async fn get_account_activities(
             "cancelled" => (
                 "booking_cancelled",
                 "Booking cancelled",
-                format!("Room {} booking for {} to {} was cancelled.", room_code, starts, ends),
+                format!(
+                    "Room {} booking for {} to {} was cancelled.",
+                    room_code, starts, ends
+                ),
                 "cancelled",
             ),
             "no_show" => (
@@ -164,15 +179,19 @@ pub async fn get_my_bookings(
     let page_size = params.page_size.unwrap_or(DEFAULT_PAGE_SIZE);
     let now = Utc::now().naive_utc();
 
-    let mut query = booking::Entity::find()
-        .filter(booking::Column::UserId.eq(auth.user_id));
+    let mut query = booking::Entity::find().filter(booking::Column::UserId.eq(auth.user_id));
 
     match params.scope.as_deref().unwrap_or("all") {
-        "active" => query = query
-            .filter(booking::Column::Status.eq(crate::entity::sea_orm_active_enums::StatusEnum::Active))
-            .filter(booking::Column::EndsAt.gt(now)),
-        "past"   => query = query.filter(booking::Column::EndsAt.lte(now)),
-        _        => {}
+        "active" => {
+            query = query
+                .filter(
+                    booking::Column::Status
+                        .eq(crate::entity::sea_orm_active_enums::StatusEnum::Active),
+                )
+                .filter(booking::Column::EndsAt.gt(now))
+        }
+        "past" => query = query.filter(booking::Column::EndsAt.lte(now)),
+        _ => {}
     }
 
     let paginator = query
@@ -180,7 +199,10 @@ pub async fn get_my_bookings(
         .paginate(&db, page_size);
 
     let total = paginator.num_items().await.map_err(internal_error)?;
-    let bookings = paginator.fetch_page(page_num - 1).await.map_err(internal_error)?;
+    let bookings = paginator
+        .fetch_page(page_num - 1)
+        .await
+        .map_err(internal_error)?;
 
     // Batch-fetch rooms so we can embed roomCode + roomName
     let room_ids: Vec<Uuid> = bookings.iter().map(|b| b.room_id).collect();
@@ -212,7 +234,12 @@ pub async fn get_my_bookings(
         })
         .collect();
 
-    Ok(Json(BookingListResponse { items, page: page_num, page_size, total }))
+    Ok(Json(BookingListResponse {
+        items,
+        page: page_num,
+        page_size,
+        total,
+    }))
 }
 
 pub async fn get_my_reminders(
@@ -237,8 +264,7 @@ pub async fn get_my_reminders(
         }
     }
 
-    let mut query = reminder::Entity::find()
-        .filter(reminder::Column::BookingId.is_in(booking_ids));
+    let mut query = reminder::Entity::find().filter(reminder::Column::BookingId.is_in(booking_ids));
 
     if let Some(status) = params.status {
         query = query.filter(reminder::Column::Status.eq(status));

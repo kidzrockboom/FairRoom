@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, DoorOpen, LogOut, ChevronDown, iconPropsAction, iconProps } from "@/lib/icons";
+import { DoorOpen, LogOut, ChevronDown, iconPropsAction, iconProps } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/features/session/useSession";
+import RemindersPopover from "@/features/reminders/components/RemindersPopover";
 
 type AppHeaderProps = {
   mobileSidebarTrigger?: ReactNode;
@@ -56,14 +57,7 @@ function AppHeader({ mobileSidebarTrigger }: AppHeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
-            aria-label="Notifications"
-            className="hidden sm:inline-flex"
-            size="icon-sm"
-            variant="ghost"
-          >
-            <Bell {...iconPropsAction} aria-hidden="true" />
-          </Button>
+          <RemindersPopover />
 
           <Popover>
             <PopoverTrigger

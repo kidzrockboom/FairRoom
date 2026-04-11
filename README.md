@@ -1,44 +1,77 @@
 # FairRoom
 
-A room booking system with a Rust/Axum backend and React/Vite frontend.
+FairRoom is a room booking system with a Rust/Axum backend and a React/Vite frontend.
 
 ## Live URLs
 
-| Service  | URL |
-|----------|-----|
-| Frontend | https://fortunate-recreation-production.up.railway.app |
-| Backend  | https://fairroom-production.up.railway.app |
+### Frontend
 
-###  Test Against the Live Backend
+- Production: https://fortunate-recreation-production.up.railway.app
 
-Use the live backend URL above. A test account can be created via:
+### Backend
+
+- Production API: https://fairroom-production.up.railway.app
+
+## Test Account
+
+Use the live backend with a test account when needed:
 
 ```bash
 curl -X POST https://fairroom-production.up.railway.app/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"full_name": "Test User", "email": "test@example.com", "password": "password123"}'
+  -d '{"full_name":"Test User","email":"test@example.com","password":"password123"}'
 ```
 
-## Basic API Reference's
+## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/auth/register` | No | Register a new user |
-| POST | `/auth/login` | No | Login and get a token |
-| GET | `/me` | Yes | Get current user |
-| GET | `/me/account-status` | Yes | Get strikes and booking eligibility |
-| GET | `/me/account-activities` | Yes | Get account activity log |
-| GET | `/me/bookings` | Yes | Get user's bookings |
-| GET | `/me/reminders` | Yes | Get user's reminders |
-| GET | `/rooms` | No | List/search rooms |
-| GET | `/rooms/:id` | No | Get a single room |
-| GET | `/rooms/:id/bookings` | No | Get bookings for a room |
-| POST | `/bookings` | Yes | Create a booking |
-| GET | `/bookings/:id` | Yes | Get a booking |
-| PATCH | `/bookings/:id` | Yes | Update a booking |
-| POST | `/bookings/:id/cancel` | Yes | Cancel a booking |
+### Auth
 
-Authenticated requests require the header:
-```
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login and get a token
+
+### Me
+
+- `GET /me` - Get the current user
+- `GET /me/account-status` - Get strikes and booking eligibility
+- `GET /me/account-activities` - Get account activity log
+- `GET /me/bookings` - Get the user bookings list
+- `GET /me/reminders` - Get booking reminders
+
+### Rooms
+
+- `GET /rooms` - List and search rooms
+- `GET /rooms/:id` - Get a single room
+- `GET /rooms/:id/bookings` - Get bookings for a room
+
+### Bookings
+
+- `POST /bookings` - Create a booking
+- `GET /bookings/:id` - Get a booking
+- `PATCH /bookings/:id` - Update a booking
+- `POST /bookings/:id/cancel` - Cancel a booking
+
+### Admin
+
+- `GET /admin/bookings` - List all bookings
+- `GET /admin/bookings/:id` - Get a booking
+- `GET /admin/users` - Search users
+- `GET /admin/users/:id/strikes` - Get a user's strikes
+- `POST /admin/strikes` - Create a strike
+- `POST /admin/strikes/:id/revoke` - Revoke a strike
+- `GET /admin/rooms` - List rooms
+- `POST /admin/rooms` - Create a room
+- `PATCH /admin/rooms/:id` - Update a room
+- `PUT /admin/rooms/:id/amenities` - Replace a room's amenities
+- `DELETE /admin/rooms/:id/amenities/:amenityId` - Remove a room amenity
+- `GET /admin/amenities` - List amenities
+- `POST /admin/amenities` - Create an amenity
+- `DELETE /admin/amenities/:id` - Delete an amenity
+- `GET /admin/analytics/room-usage` - Get room usage analytics
+
+## Auth Header
+
+Authenticated requests must include:
+
+```http
 Authorization: Bearer <token>
 ```

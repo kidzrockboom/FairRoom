@@ -1,28 +1,26 @@
-import type { Room } from "@/api/contracts";
+import type { AdminRoomResponse } from "@/api/contracts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Pen, Power, Trash2, Users, iconProps } from "@/lib/icons";
+import { Building2, MapPin, Pen, Power, Users, iconProps } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
-import type { InventoryRoom } from "@/features/admin/inventory/content";
-
 type InventoryRoomCardProps = {
-  room: InventoryRoom;
-  onEdit: (room: InventoryRoom) => void;
-  onDelete: (room: InventoryRoom) => void;
+  room: AdminRoomResponse;
+  onEdit: (room: AdminRoomResponse) => void;
+  onToggleStatus: (room: AdminRoomResponse) => void;
 };
 
-function roomStateLabel(room: Room) {
-  return room.isActive ? "Operational" : "Disabled";
+function roomStateLabel(room: AdminRoomResponse) {
+  return room.status === "operational" ? "Operational" : "Disabled";
 }
 
 function capacityLabel(capacity: number) {
   return `${capacity} ${capacity === 1 ? "student" : "students"}`;
 }
 
-export default function InventoryRoomCard({ room, onEdit, onDelete }: InventoryRoomCardProps) {
-  const isOperational = room.isActive;
+export default function InventoryRoomCard({ room, onEdit, onToggleStatus }: InventoryRoomCardProps) {
+  const isOperational = room.status === "operational";
 
   return (
     <Card
@@ -55,15 +53,6 @@ export default function InventoryRoomCard({ room, onEdit, onDelete }: InventoryR
             >
               <Pen aria-hidden="true" />
             </Button>
-            <Button
-              aria-label={`Delete ${room.name}`}
-              className="text-muted-foreground hover:text-destructive"
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => onDelete(room)}
-            >
-              <Trash2 aria-hidden="true" />
-            </Button>
           </div>
         </div>
 
@@ -75,6 +64,10 @@ export default function InventoryRoomCard({ room, onEdit, onDelete }: InventoryR
       <CardContent className="px-4 pb-0">
         <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
           <p className="flex items-center gap-1.5">
+            <Building2 {...iconProps} aria-hidden="true" className="shrink-0" />
+            {room.roomCode}
+          </p>
+          <p className="flex items-center gap-1.5">
             <MapPin {...iconProps} aria-hidden="true" className="shrink-0" />
             {room.location}
           </p>
@@ -84,14 +77,18 @@ export default function InventoryRoomCard({ room, onEdit, onDelete }: InventoryR
           </p>
         </div>
 
+        {room.usageNotes && (
+          <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{room.usageNotes}</p>
+        )}
+
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {room.tags.map((tag) => (
+          {room.amenities.map((amenity) => (
             <Badge
-              key={tag}
+              key={amenity.id}
               variant="outline"
               className="rounded-sm border-border bg-muted/35 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground shadow-none"
             >
-              {tag}
+              {amenity.label}
             </Badge>
           ))}
         </div>
@@ -106,6 +103,7 @@ export default function InventoryRoomCard({ room, onEdit, onDelete }: InventoryR
               : "bg-content text-background hover:bg-content/90",
           )}
           variant={isOperational ? "outline" : "default"}
+          onClick={() => onToggleStatus(room)}
         >
           <Power data-icon="inline-start" />
           {isOperational ? "Disable Room" : "Enable Room"}

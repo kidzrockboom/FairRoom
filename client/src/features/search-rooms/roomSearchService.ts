@@ -1,7 +1,6 @@
 import { fairroomApi } from "@/api/fairroomApi";
-import type { Room, SearchRoomsParams } from "@/api/contracts";
+import type { RoomSearchResponse, SearchRoomsParams } from "@/api/contracts";
 
-export async function fetchRooms(params: SearchRoomsParams): Promise<Room[]> {
-  const response = await fairroomApi.searchRooms(params);
-  return response.items;
+export async function fetchRooms(params: SearchRoomsParams): Promise<RoomSearchResponse> {
+  return fairroomApi.searchRooms(params);
 }

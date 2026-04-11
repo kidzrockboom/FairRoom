@@ -5,8 +5,8 @@ use axum::{
 };
 use chrono::Utc;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, DbBackend,
-    EntityTrait, ExprTrait, FromQueryResult, PaginatorTrait, QueryFilter, QueryOrder, Set, Statement,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, DbBackend, EntityTrait, ExprTrait,
+    FromQueryResult, PaginatorTrait, QueryFilter, QueryOrder, Set, Statement,
 };
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -20,16 +20,25 @@ use crate::routes::models::*;
 
 fn require_admin(auth: &AuthUser) -> Result<(), ApiError> {
     if auth.role != "admin" {
-        Err(api_error(StatusCode::FORBIDDEN, "FORBIDDEN", "Admin access required.", None))
+        Err(api_error(
+            StatusCode::FORBIDDEN,
+            "FORBIDDEN",
+            "Admin access required.",
+            None,
+        ))
     } else {
         Ok(())
     }
 }
 
 fn account_state(active_strikes: i64) -> &'static str {
-    if active_strikes >= 3 { "restricted" }
-    else if active_strikes == 2 { "warned" }
-    else { "good" }
+    if active_strikes >= 3 {
+        "restricted"
+    } else if active_strikes == 2 {
+        "warned"
+    } else {
+        "good"
+    }
 }
 
 fn strike_to_response(s: &strike::Model) -> StrikeResponse {
@@ -67,7 +76,10 @@ async fn room_amenities(
 
     Ok(amenities
         .into_iter()
-        .map(|a| AmenityResponse { id: a.id.to_string(), label: a.label })
+        .map(|a| AmenityResponse {
+            id: a.id.to_string(),
+            label: a.label,
+        })
         .collect())
 }
 
@@ -131,16 +143,20 @@ pub async fn admin_get_bookings(
     }
     if let Some(ref status_str) = params.status {
         let status = match status_str.as_str() {
-            "active"    => StatusEnum::Active,
+            "active" => StatusEnum::Active,
             "cancelled" => StatusEnum::Cancelled,
             "completed" => StatusEnum::Completed,
-            "no_show"   => StatusEnum::NoShow,
-            _ => return Err(api_error(
-                StatusCode::BAD_REQUEST,
-                "VALIDATION_ERROR",
-                "Request validation failed.",
-                Some(serde_json::json!({ "field": "status", "reason": "Invalid status value" })),
-            )),
+            "no_show" => StatusEnum::NoShow,
+            _ => {
+                return Err(api_error(
+                    StatusCode::BAD_REQUEST,
+                    "VALIDATION_ERROR",
+                    "Request validation failed.",
+                    Some(
+                        serde_json::json!({ "field": "status", "reason": "Invalid status value" }),
+                    ),
+                ));
+            }
         };
         query = query.filter(booking::Column::Status.eq(status));
     }
@@ -150,7 +166,10 @@ pub async fn admin_get_bookings(
         .paginate(&db, page_size);
 
     let total = paginator.num_items().await.map_err(internal_error)?;
-    let bookings = paginator.fetch_page(page - 1).await.map_err(internal_error)?;
+    let bookings = paginator
+        .fetch_page(page - 1)
+        .await
+        .map_err(internal_error)?;
 
     let user_ids: Vec<Uuid> = bookings.iter().map(|b| b.user_id).collect();
     let room_ids: Vec<Uuid> = bookings.iter().map(|b| b.room_id).collect();
@@ -200,7 +219,12 @@ pub async fn admin_get_bookings(
         })
         .collect();
 
-    Ok(Json(AdminBookingListResponse { items, page, page_size, total }))
+    Ok(Json(AdminBookingListResponse {
+        items,
+        page,
+        page_size,
+        total,
+    }))
 }
 
 pub async fn admin_get_booking(
@@ -214,23 +238,47 @@ pub async fn admin_get_booking(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "BOOKING_NOT_FOUND", "The requested booking could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "BOOKING_NOT_FOUND",
+                "The requested booking could not be found.",
+                None,
+            )
+        })?;
 
     let user = user::Entity::find_by_id(booking.user_id)
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "USER_NOT_FOUND", "The user associated with this booking could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "USER_NOT_FOUND",
+                "The user associated with this booking could not be found.",
+                None,
+            )
+        })?;
 
     let room = room::Entity::find_by_id(booking.room_id)
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "ROOM_NOT_FOUND", "The room associated with this booking could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The room associated with this booking could not be found.",
+                None,
+            )
+        })?;
 
     Ok(Json(AdminBookingItem {
         id: booking.id.to_string(),
-        user: AdminBookingUserSnippet { id: user.id.to_string(), full_name: user.full_name },
+        user: AdminBookingUserSnippet {
+            id: user.id.to_string(),
+            full_name: user.full_name,
+        },
         room: AdminBookingRoomSnippet {
             id: room.id.to_string(),
             room_code: room.room_code,
@@ -350,7 +398,14 @@ pub async fn admin_create_strike(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "USER_NOT_FOUND", "The requested user could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "USER_NOT_FOUND",
+                "The requested user could not be found.",
+                None,
+            )
+        })?;
 
     let new_strikes = user.strikes + 1;
 
@@ -385,7 +440,14 @@ pub async fn admin_revoke_strike(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "STRIKE_NOT_FOUND", "The requested strike could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "STRIKE_NOT_FOUND",
+                "The requested strike could not be found.",
+                None,
+            )
+        })?;
 
     if strike.revoked_at.is_some() {
         return Err(api_error(
@@ -405,7 +467,14 @@ pub async fn admin_revoke_strike(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "USER_NOT_FOUND", "The user associated with this strike could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "USER_NOT_FOUND",
+                "The user associated with this strike could not be found.",
+                None,
+            )
+        })?;
 
     let current_strikes = user.strikes;
     let mut active_user: user::ActiveModel = user.into();
@@ -457,7 +526,9 @@ pub async fn admin_create_room(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
             "Request validation failed.",
-            Some(serde_json::json!({ "field": "roomCode, name", "reason": "roomCode and name are required" })),
+            Some(
+                serde_json::json!({ "field": "roomCode, name", "reason": "roomCode and name are required" }),
+            ),
         ));
     }
     if payload.capacity < 1 {
@@ -465,7 +536,9 @@ pub async fn admin_create_room(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
             "Request validation failed.",
-            Some(serde_json::json!({ "field": "capacity", "reason": "capacity must be at least 1" })),
+            Some(
+                serde_json::json!({ "field": "capacity", "reason": "capacity must be at least 1" }),
+            ),
         ));
     }
     if payload.status != "operational" && payload.status != "disabled" {
@@ -473,7 +546,9 @@ pub async fn admin_create_room(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
             "Request validation failed.",
-            Some(serde_json::json!({ "field": "status", "reason": "status must be 'operational' or 'disabled'" })),
+            Some(
+                serde_json::json!({ "field": "status", "reason": "status must be 'operational' or 'disabled'" }),
+            ),
         ));
     }
 
@@ -505,7 +580,14 @@ pub async fn admin_update_room(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "ROOM_NOT_FOUND", "The requested room could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The requested room could not be found.",
+                None,
+            )
+        })?;
 
     let mut active: room::ActiveModel = room.into();
 
@@ -524,7 +606,9 @@ pub async fn admin_update_room(
                 StatusCode::BAD_REQUEST,
                 "VALIDATION_ERROR",
                 "Request validation failed.",
-                Some(serde_json::json!({ "field": "capacity", "reason": "capacity must be at least 1" })),
+                Some(
+                    serde_json::json!({ "field": "capacity", "reason": "capacity must be at least 1" }),
+                ),
             ));
         }
         active.capacity = Set(capacity);
@@ -535,7 +619,9 @@ pub async fn admin_update_room(
                 StatusCode::BAD_REQUEST,
                 "VALIDATION_ERROR",
                 "Request validation failed.",
-                Some(serde_json::json!({ "field": "status", "reason": "status must be 'operational' or 'disabled'" })),
+                Some(
+                    serde_json::json!({ "field": "status", "reason": "status must be 'operational' or 'disabled'" }),
+                ),
             ));
         }
         active.status = Set(status.clone());
@@ -565,7 +651,10 @@ pub async fn admin_get_amenities(
 
     let items: Vec<AmenityResponse> = amenities
         .into_iter()
-        .map(|a| AmenityResponse { id: a.id.to_string(), label: a.label })
+        .map(|a| AmenityResponse {
+            id: a.id.to_string(),
+            label: a.label,
+        })
         .collect();
     let total = items.len();
     Ok(Json(AmenityListResponse { items, total }))
@@ -593,7 +682,13 @@ pub async fn admin_create_amenity(
     };
 
     let inserted = new_amenity.insert(&db).await.map_err(internal_error)?;
-    Ok((StatusCode::CREATED, Json(AmenityResponse { id: inserted.id.to_string(), label: inserted.label })))
+    Ok((
+        StatusCode::CREATED,
+        Json(AmenityResponse {
+            id: inserted.id.to_string(),
+            label: inserted.label,
+        }),
+    ))
 }
 
 pub async fn admin_delete_amenity(
@@ -609,7 +704,12 @@ pub async fn admin_delete_amenity(
         .map_err(internal_error)?;
 
     if result.rows_affected == 0 {
-        return Err(api_error(StatusCode::NOT_FOUND, "AMENITY_NOT_FOUND", "The requested amenity could not be found.", None));
+        return Err(api_error(
+            StatusCode::NOT_FOUND,
+            "AMENITY_NOT_FOUND",
+            "The requested amenity could not be found.",
+            None,
+        ));
     }
 
     Ok(StatusCode::NO_CONTENT)
@@ -627,7 +727,14 @@ pub async fn admin_set_room_amenities(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "ROOM_NOT_FOUND", "The requested room could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The requested room could not be found.",
+                None,
+            )
+        })?;
 
     let found_amenities = amenity::Entity::find()
         .filter(amenity::Column::Id.is_in(payload.amenity_ids.clone()))
@@ -640,7 +747,9 @@ pub async fn admin_set_room_amenities(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
             "Request validation failed.",
-            Some(serde_json::json!({ "field": "amenityIds", "reason": "One or more amenity IDs not found" })),
+            Some(
+                serde_json::json!({ "field": "amenityIds", "reason": "One or more amenity IDs not found" }),
+            ),
         ));
     }
 
@@ -677,7 +786,12 @@ pub async fn admin_delete_room_amenity(
         .map_err(internal_error)?;
 
     if result.rows_affected == 0 {
-        return Err(api_error(StatusCode::NOT_FOUND, "ROOM_AMENITY_NOT_FOUND", "The requested room amenity assignment could not be found.", None));
+        return Err(api_error(
+            StatusCode::NOT_FOUND,
+            "ROOM_AMENITY_NOT_FOUND",
+            "The requested room amenity assignment could not be found.",
+            None,
+        ));
     }
 
     Ok(StatusCode::NO_CONTENT)
@@ -734,9 +848,11 @@ pub async fn admin_get_room_usage(
         values.push(ends_at.into());
     }
 
-    let rows = RoomUsageRow::find_by_statement(
-        Statement::from_sql_and_values(DbBackend::Postgres, &sql, values),
-    )
+    let rows = RoomUsageRow::find_by_statement(Statement::from_sql_and_values(
+        DbBackend::Postgres,
+        &sql,
+        values,
+    ))
     .all(&db)
     .await
     .map_err(internal_error)?;

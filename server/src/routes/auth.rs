@@ -1,5 +1,5 @@
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use argon2::password_hash::{SaltString, rand_core::OsRng};
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use axum::http::StatusCode;
 use axum::{Json, extract::State};
 use chrono::Utc;
@@ -54,7 +54,14 @@ pub async fn register(
     let salt = SaltString::generate(&mut OsRng);
     let password_hash = Argon2::default()
         .hash_password(payload.password.as_bytes(), &salt)
-        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "An unexpected error occurred. Please try again later.", None))?
+        .map_err(|_| {
+            api_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "INTERNAL_SERVER_ERROR",
+                "An unexpected error occurred. Please try again later.",
+                None,
+            )
+        })?
         .to_string();
 
     let new_user = user::ActiveModel {
@@ -75,10 +82,13 @@ pub async fn register(
     };
     let token = generate_jwt(&user.id.to_string(), &user.email, role);
 
-    Ok((StatusCode::CREATED, Json(AuthResponse {
-        token,
-        user: user_to_response(&user),
-    })))
+    Ok((
+        StatusCode::CREATED,
+        Json(AuthResponse {
+            token,
+            user: user_to_response(&user),
+        }),
+    ))
 }
 
 pub async fn login(
@@ -97,12 +107,14 @@ pub async fn login(
         ));
     }
 
-    let invalid_creds = || api_error(
-        StatusCode::UNAUTHORIZED,
-        "UNAUTHENTICATED",
-        "Invalid email or password.",
-        None,
-    );
+    let invalid_creds = || {
+        api_error(
+            StatusCode::UNAUTHORIZED,
+            "UNAUTHENTICATED",
+            "Invalid email or password.",
+            None,
+        )
+    };
 
     let user = user::Entity::find()
         .filter(user::Column::Email.eq(&payload.email))

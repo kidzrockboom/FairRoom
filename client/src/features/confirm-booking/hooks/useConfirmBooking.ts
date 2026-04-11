@@ -54,7 +54,7 @@ export function useConfirmBooking({ roomId, date, slotHour }: ConfirmBookingRout
     try {
       const payload = toCreateBookingRequest(roomId, date, slotHour, values);
       const booking = await submitBooking(payload);
-      navigate("/bookings/reminder", { state: { booking } });
+      navigate(`/bookings/${booking.id}`);
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : "Failed to create booking");
     }

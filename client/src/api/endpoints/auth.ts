@@ -8,7 +8,9 @@ export async function register(payload: RegisterRequest): Promise<AuthResponse> 
     const { data } = await apiClient.post<AuthResponse>("/auth/register", payload);
     return data;
   } catch (error: unknown) {
-    throw new Error(readApiErrorMessage(error, "Failed to register"));
+    throw new Error(
+      readApiErrorMessage(error, "We could not create your account. Please try again."),
+    );
   }
 }
 
@@ -17,7 +19,9 @@ export async function login(payload: LoginRequest): Promise<AuthResponse> {
     const { data } = await apiClient.post<AuthResponse>("/auth/login", payload);
     return data;
   } catch (error: unknown) {
-    throw new Error(readApiErrorMessage(error, "Failed to sign in"));
+    throw new Error(
+      readApiErrorMessage(error, "We could not sign you in. Check your details and try again."),
+    );
   }
 }
 
@@ -28,6 +32,6 @@ export async function getMe(): Promise<UserProfile> {
     });
     return data;
   } catch (error: unknown) {
-    throw new Error(readApiErrorMessage(error, "Failed to load current user"));
+    throw new Error(readApiErrorMessage(error, "We could not load your account details."));
   }
 }

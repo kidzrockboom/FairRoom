@@ -1,25 +1,29 @@
 import type { SearchRoomsParams } from "@/api/contracts";
 import type { Filters } from "./schemas";
 
+function toLocalDateTime(date: string, hour: number) {
+  return `${date}T${String(hour).padStart(2, "0")}:00:00`;
+}
+
 export function toSearchParams(
   filters: Filters,
   search: string,
+  page: number,
+  pageSize: number,
 ): SearchRoomsParams {
   const [startHour, endHour] = filters.timeRange;
 
-  const startsAt = filters.date
-    ? new Date(`${filters.date}T${String(startHour).padStart(2, "0")}:00:00`).toISOString()
-    : undefined;
+  const startsAt = filters.date ? toLocalDateTime(filters.date, startHour) : undefined;
 
-  const endsAt = filters.date
-    ? new Date(`${filters.date}T${String(endHour).padStart(2, "0")}:00:00`).toISOString()
-    : undefined;
+  const endsAt = filters.date ? toLocalDateTime(filters.date, endHour) : undefined;
 
   return {
     search: search.trim() || undefined,
     minCapacity: filters.capacity ?? undefined,
     startsAt,
     endsAt,
-    pageSize: 100,
+    amenityIds: filters.amenityIds.length > 0 ? filters.amenityIds : undefined,
+    page,
+    pageSize,
   };
 }

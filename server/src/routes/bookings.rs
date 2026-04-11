@@ -4,7 +4,10 @@ use axum::{
     http::StatusCode,
 };
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait,
+    QueryFilter, Set,
+};
 use uuid::Uuid;
 
 use crate::entity::sea_orm_active_enums::StatusEnum;
@@ -39,7 +42,9 @@ pub async fn create_booking(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
             "Request validation failed.",
-            Some(serde_json::json!({ "field": "endsAt", "reason": "endsAt must be later than startsAt" })),
+            Some(
+                serde_json::json!({ "field": "endsAt", "reason": "endsAt must be later than startsAt" }),
+            ),
         ));
     }
     if payload.purpose.trim().is_empty() {
@@ -55,7 +60,9 @@ pub async fn create_booking(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
             "Request validation failed.",
-            Some(serde_json::json!({ "field": "expectedAttendees", "reason": "expectedAttendees must be at least 1" })),
+            Some(
+                serde_json::json!({ "field": "expectedAttendees", "reason": "expectedAttendees must be at least 1" }),
+            ),
         ));
     }
 
@@ -68,12 +75,18 @@ pub async fn create_booking(
         .map_err(internal_error)? as i64;
 
     if active_strikes >= SUSPENSION_THRESHOLD {
-        let account_state = if active_strikes >= 3 { "restricted" } else { "warned" };
+        let account_state = if active_strikes >= 3 {
+            "restricted"
+        } else {
+            "warned"
+        };
         return Err(api_error(
             StatusCode::FORBIDDEN,
             "BOOKING_RESTRICTED",
             "You cannot create a new booking because your account is restricted.",
-            Some(serde_json::json!({ "activeStrikes": active_strikes, "accountState": account_state })),
+            Some(
+                serde_json::json!({ "activeStrikes": active_strikes, "accountState": account_state }),
+            ),
         ));
     }
 
@@ -82,10 +95,22 @@ pub async fn create_booking(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "ROOM_NOT_FOUND", "The requested room could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The requested room could not be found.",
+                None,
+            )
+        })?;
 
     if room.status != "operational" {
-        return Err(api_error(StatusCode::BAD_REQUEST, "ROOM_UNAVAILABLE", "This room is not currently available for booking.", None));
+        return Err(api_error(
+            StatusCode::BAD_REQUEST,
+            "ROOM_UNAVAILABLE",
+            "This room is not currently available for booking.",
+            None,
+        ));
     }
     if payload.expected_attendees > room.capacity {
         return Err(api_error(
@@ -153,23 +178,49 @@ pub async fn get_booking(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "BOOKING_NOT_FOUND", "The requested booking could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "BOOKING_NOT_FOUND",
+                "The requested booking could not be found.",
+                None,
+            )
+        })?;
 
     if b.user_id != auth.user_id && auth.role != "admin" {
-        return Err(api_error(StatusCode::FORBIDDEN, "FORBIDDEN", "You do not have permission to access this booking.", None));
+        return Err(api_error(
+            StatusCode::FORBIDDEN,
+            "FORBIDDEN",
+            "You do not have permission to access this booking.",
+            None,
+        ));
     }
 
     let user = user::Entity::find_by_id(b.user_id)
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "USER_NOT_FOUND", "User not found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "USER_NOT_FOUND",
+                "User not found.",
+                None,
+            )
+        })?;
 
     let room = room::Entity::find_by_id(b.room_id)
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "ROOM_NOT_FOUND", "The requested room could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The requested room could not be found.",
+                None,
+            )
+        })?;
 
     Ok(Json(BookingDetailResponse {
         id: b.id.to_string(),
@@ -203,17 +254,33 @@ pub async fn update_booking(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "BOOKING_NOT_FOUND", "The requested booking could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "BOOKING_NOT_FOUND",
+                "The requested booking could not be found.",
+                None,
+            )
+        })?;
 
     if b.user_id != auth.user_id {
-        return Err(api_error(StatusCode::FORBIDDEN, "FORBIDDEN", "You do not have permission to modify this booking.", None));
+        return Err(api_error(
+            StatusCode::FORBIDDEN,
+            "FORBIDDEN",
+            "You do not have permission to modify this booking.",
+            None,
+        ));
     }
 
     let now = Utc::now().naive_utc();
     if b.starts_at <= now {
         return Err(api_error(
-            StatusCode::BAD_REQUEST, "VALIDATION_ERROR", "Request validation failed.",
-            Some(serde_json::json!({ "field": "startsAt", "reason": "Cannot edit a booking that has already started" })),
+            StatusCode::BAD_REQUEST,
+            "VALIDATION_ERROR",
+            "Request validation failed.",
+            Some(
+                serde_json::json!({ "field": "startsAt", "reason": "Cannot edit a booking that has already started" }),
+            ),
         ));
     }
 
@@ -222,8 +289,12 @@ pub async fn update_booking(
 
     if new_starts_at >= new_ends_at {
         return Err(api_error(
-            StatusCode::BAD_REQUEST, "VALIDATION_ERROR", "Request validation failed.",
-            Some(serde_json::json!({ "field": "endsAt", "reason": "endsAt must be later than startsAt" })),
+            StatusCode::BAD_REQUEST,
+            "VALIDATION_ERROR",
+            "Request validation failed.",
+            Some(
+                serde_json::json!({ "field": "endsAt", "reason": "endsAt must be later than startsAt" }),
+            ),
         ));
     }
 
@@ -242,7 +313,8 @@ pub async fn update_booking(
 
     if overlap.is_some() {
         return Err(api_error(
-            StatusCode::CONFLICT, "BOOKING_CONFLICT",
+            StatusCode::CONFLICT,
+            "BOOKING_CONFLICT",
             "The selected time range overlaps an existing active booking.",
             Some(serde_json::json!({
                 "roomId": b.room_id.to_string(),
@@ -263,7 +335,14 @@ pub async fn update_booking(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "ROOM_NOT_FOUND", "The requested room could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The requested room could not be found.",
+                None,
+            )
+        })?;
 
     Ok(Json(booking_response(&updated, &room)))
 }
@@ -278,24 +357,44 @@ pub async fn cancel_booking(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "BOOKING_NOT_FOUND", "The requested booking could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "BOOKING_NOT_FOUND",
+                "The requested booking could not be found.",
+                None,
+            )
+        })?;
 
     if b.user_id != auth.user_id {
-        return Err(api_error(StatusCode::FORBIDDEN, "FORBIDDEN", "You do not have permission to cancel this booking.", None));
+        return Err(api_error(
+            StatusCode::FORBIDDEN,
+            "FORBIDDEN",
+            "You do not have permission to cancel this booking.",
+            None,
+        ));
     }
 
     let now = Utc::now().naive_utc();
     if b.starts_at <= now {
         return Err(api_error(
-            StatusCode::BAD_REQUEST, "VALIDATION_ERROR", "Request validation failed.",
-            Some(serde_json::json!({ "field": "startsAt", "reason": "Cannot cancel a booking that has already started" })),
+            StatusCode::BAD_REQUEST,
+            "VALIDATION_ERROR",
+            "Request validation failed.",
+            Some(
+                serde_json::json!({ "field": "startsAt", "reason": "Cannot cancel a booking that has already started" }),
+            ),
         ));
     }
 
     if b.status != StatusEnum::Active {
         return Err(api_error(
-            StatusCode::BAD_REQUEST, "VALIDATION_ERROR", "Request validation failed.",
-            Some(serde_json::json!({ "field": "status", "reason": "Only active bookings can be cancelled" })),
+            StatusCode::BAD_REQUEST,
+            "VALIDATION_ERROR",
+            "Request validation failed.",
+            Some(
+                serde_json::json!({ "field": "status", "reason": "Only active bookings can be cancelled" }),
+            ),
         ));
     }
 
@@ -309,7 +408,14 @@ pub async fn cancel_booking(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "ROOM_NOT_FOUND", "The requested room could not be found.", None))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The requested room could not be found.",
+                None,
+            )
+        })?;
 
     Ok(Json(booking_response(&updated, &room)))
 }

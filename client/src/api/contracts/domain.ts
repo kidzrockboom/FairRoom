@@ -3,6 +3,7 @@ export type BookingStatus = "active" | "cancelled" | "completed" | "no_show";
 export type ReminderStatus = "scheduled" | "delivered" | "failed";
 export type ReminderChannel = "email" | "push" | "sms";
 export type AccountState = "good" | "warned" | "restricted";
+export type RoomStatus = "operational" | "disabled";
 
 export interface UserProfile {
   id: string;
@@ -18,8 +19,11 @@ export interface Room {
   name: string;
   location: string;
   capacity: number;
-  isActive: boolean;
+  status: RoomStatus;
   createdAt: string;
+  building?: string;
+  floor?: string;
+  usageNotes?: string;
   amenities?: Amenity[];
   isAvailableForRequestedRange?: boolean;
 }
@@ -47,9 +51,9 @@ export interface Reminder {
   bookingId: string;
   channel: ReminderChannel;
   scheduledFor: string;
-  sentAt: string | null;
+  sentAt: string;
   status: ReminderStatus;
-  failureReason: string | null;
+  failureReason: string;
   createdAt: string;
 }
 
