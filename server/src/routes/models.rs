@@ -340,6 +340,7 @@ pub struct CreateRoomRequest {
     pub capacity: i32,
     pub status: String,
     pub usage_notes: Option<String>,
+    pub amenity_ids: Option<Vec<Uuid>>,
 }
 
 #[derive(Deserialize)]
@@ -351,6 +352,7 @@ pub struct UpdateRoomRequest {
     pub capacity: Option<i32>,
     pub status: Option<String>,
     pub usage_notes: Option<String>,
+    pub amenity_ids: Option<Vec<Uuid>>,
 }
 
 // ── Amenity requests ──────────────────────────────────────────────────────────

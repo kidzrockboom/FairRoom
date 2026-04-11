@@ -83,6 +83,47 @@ async fn room_amenities(
         .collect())
 }
 
+async fn apply_room_amenities(
+    db: &DatabaseConnection,
+    room_id: Uuid,
+    amenity_ids: Vec<Uuid>,
+) -> Result<(), ApiError> {
+    if !amenity_ids.is_empty() {
+        let found = amenity::Entity::find()
+            .filter(amenity::Column::Id.is_in(amenity_ids.clone()))
+            .all(db)
+            .await
+            .map_err(internal_error)?;
+
+        if found.len() != amenity_ids.len() {
+            return Err(api_error(
+                StatusCode::BAD_REQUEST,
+                "VALIDATION_ERROR",
+                "Request validation failed.",
+                Some(serde_json::json!({ "field": "amenityIds", "reason": "One or more amenity IDs not found" })),
+            ));
+        }
+    }
+
+    room_amenity::Entity::delete_many()
+        .filter(room_amenity::Column::RoomId.eq(room_id))
+        .exec(db)
+        .await
+        .map_err(internal_error)?;
+
+    for amenity_id in amenity_ids {
+        room_amenity::ActiveModel {
+            room_id: Set(room_id),
+            amenity_id: Set(amenity_id),
+        }
+        .insert(db)
+        .await
+        .map_err(internal_error)?;
+    }
+
+    Ok(())
+}
+
 fn room_to_response(room: room::Model, amenities: Vec<AmenityResponse>) -> RoomResponse {
     RoomResponse {
         id: room.id.to_string(),
@@ -566,7 +607,13 @@ pub async fn admin_create_room(
     };
 
     let room = new_room.insert(&db).await.map_err(internal_error)?;
-    Ok((StatusCode::CREATED, Json(room_to_response(room, vec![]))))
+
+    if let Some(amenity_ids) = payload.amenity_ids {
+        apply_room_amenities(&db, room.id, amenity_ids).await?;
+    }
+
+    let amenities = room_amenities(&db, room.id).await?;
+    Ok((StatusCode::CREATED, Json(room_to_response(room, amenities))))
 }
 
 pub async fn admin_update_room(
@@ -632,6 +679,11 @@ pub async fn admin_update_room(
     }
 
     let updated = active.update(&db).await.map_err(internal_error)?;
+
+    if let Some(amenity_ids) = payload.amenity_ids {
+        apply_room_amenities(&db, updated.id, amenity_ids).await?;
+    }
+
     let amenities = room_amenities(&db, updated.id).await?;
     Ok(Json(room_to_response(updated, amenities)))
 }
