@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Filter, iconProps } from "@/lib/icons";
+import { useSearchRoomsContext } from "../context";
 import FilterPanelBody from "./FilterPanelBody";
 
 type SearchFiltersSheetProps = {
@@ -9,6 +10,8 @@ type SearchFiltersSheetProps = {
 };
 
 export default function SearchFiltersSheet({ open, onOpenChange }: SearchFiltersSheetProps) {
+  const { applyFilters } = useSearchRoomsContext();
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-[min(90vw,22rem)] max-w-none p-0" showCloseButton>
@@ -23,8 +26,14 @@ export default function SearchFiltersSheet({ open, onOpenChange }: SearchFilters
         <FilterPanelBody className="min-h-0 flex-1" />
 
         <div className="border-t border-border px-6 pb-6 pt-4">
-          <Button variant="outline" className="h-11 w-full text-sm font-semibold" onClick={() => onOpenChange(false)}>
-            Done
+          <Button
+            className="h-11 w-full bg-brand-500 text-sm font-semibold text-white hover:bg-brand-600"
+            onClick={() => {
+              applyFilters();
+              onOpenChange(false);
+            }}
+          >
+            Apply Filters
           </Button>
         </div>
       </SheetContent>

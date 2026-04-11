@@ -4,10 +4,9 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { iconProps } from "@/lib/icons";
 import { cn, formatHour } from "@/lib/utils";
-import { Filter } from "@/lib/icons";
 import { useSearchRoomsContext } from "../context";
 import { CAPACITY_OPTIONS } from "../content";
-import { useDebouncedTimeRange } from "../hooks/useDebouncedTimeRange";
+import { Filter } from "@/lib/icons";
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -22,14 +21,12 @@ type FilterPanelBodyProps = {
 };
 
 export default function FilterPanelBody({ className }: FilterPanelBodyProps) {
-  const { filters, availableAmenities, patchFilters, resetFilters } = useSearchRoomsContext();
-  const { draftRange, setDraftRange } = useDebouncedTimeRange(filters.timeRange, (nextRange) =>
-    patchFilters({ timeRange: nextRange }),
-  );
-  const handleReset = () => {
-    setDraftRange([0, 24]);
-    resetFilters();
-  };
+  const {
+    draftFilters,
+    availableAmenities,
+    patchFilters,
+    resetDraftFilters,
+  } = useSearchRoomsContext();
 
   return (
     <div className={cn("flex h-full flex-col", className)}>
@@ -42,7 +39,7 @@ export default function FilterPanelBody({ className }: FilterPanelBodyProps) {
           variant="ghost"
           size="sm"
           className="h-auto px-1.5 py-1 text-xs text-muted-foreground"
-          onClick={handleReset}
+          onClick={resetDraftFilters}
         >
           Reset
         </Button>
@@ -55,7 +52,7 @@ export default function FilterPanelBody({ className }: FilterPanelBodyProps) {
           <SectionLabel>Date</SectionLabel>
           <input
             type="date"
-            value={filters.date}
+            value={draftFilters.date}
             onChange={(e) => patchFilters({ date: e.target.value })}
             className="h-10 w-full rounded-input border border-input bg-surface px-3 text-sm text-content focus:outline-none focus:ring-2 focus:ring-ring/50"
           />
@@ -67,10 +64,14 @@ export default function FilterPanelBody({ className }: FilterPanelBodyProps) {
             {CAPACITY_OPTIONS.map((capacity) => (
               <Button
                 key={capacity}
-                variant={filters.capacity === capacity ? "default" : "outline"}
+                variant={draftFilters.capacity === capacity ? "default" : "outline"}
                 size="sm"
-                className={cn("h-9 text-sm", filters.capacity !== capacity && "text-content")}
-                onClick={() => patchFilters({ capacity: filters.capacity === capacity ? null : capacity })}
+                className={cn("h-9 text-sm", draftFilters.capacity !== capacity && "text-content")}
+                onClick={() =>
+                  patchFilters({
+                    capacity: draftFilters.capacity === capacity ? null : capacity,
+                  })
+                }
               >
                 {capacity}+ People
               </Button>
@@ -82,17 +83,17 @@ export default function FilterPanelBody({ className }: FilterPanelBodyProps) {
           <SectionLabel>Time Range</SectionLabel>
           <Slider
             className="px-0.5 py-3"
-            value={draftRange}
+            value={draftFilters.timeRange}
             onValueChange={(val) => {
               const [start, end] = val as [number, number];
-              setDraftRange([start, end]);
+              patchFilters({ timeRange: [start, end] });
             }}
             max={24}
             min={0}
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{formatHour(draftRange[0])}</span>
-            <span>{formatHour(draftRange[1])}</span>
+            <span>{formatHour(draftFilters.timeRange[0])}</span>
+            <span>{formatHour(draftFilters.timeRange[1])}</span>
           </div>
         </section>
 
@@ -108,12 +109,12 @@ export default function FilterPanelBody({ className }: FilterPanelBodyProps) {
                 >
                   <Checkbox
                     id={id}
-                    checked={filters.amenityIds.includes(id)}
+                    checked={draftFilters.amenityIds.includes(id)}
                     onCheckedChange={(checked) =>
                       patchFilters({
                         amenityIds: checked
-                          ? [...filters.amenityIds, id]
-                          : filters.amenityIds.filter((amenityId) => amenityId !== id),
+                          ? [...draftFilters.amenityIds, id]
+                          : draftFilters.amenityIds.filter((amenityId) => amenityId !== id),
                       })
                     }
                   />
@@ -126,6 +127,7 @@ export default function FilterPanelBody({ className }: FilterPanelBodyProps) {
           )}
         </section>
       </div>
+
     </div>
   );
 }

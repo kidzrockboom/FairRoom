@@ -20,7 +20,8 @@ const DEFAULT_FILTERS: Filters = {
 };
 
 type State = {
-  filters: Filters;
+  appliedFilters: Filters;
+  draftFilters: Filters;
   search: string;
   sort: SortKey;
   page: number;
@@ -33,8 +34,10 @@ type State = {
 };
 
 type Action =
-  | { type: "PATCH_FILTERS"; payload: Partial<Filters> }
-  | { type: "RESET" }
+  | { type: "PATCH_DRAFT_FILTERS"; payload: Partial<Filters> }
+  | { type: "RESET_DRAFT_FILTERS" }
+  | { type: "APPLY_FILTERS" }
+  | { type: "RESET_ALL_FILTERS" }
   | { type: "REMOVE_CHIP"; payload: "date" | "capacity" | "time" }
   | { type: "REMOVE_AMENITY"; payload: string }
   | { type: "SET_SEARCH"; payload: string }
@@ -49,7 +52,8 @@ type Action =
   | { type: "FETCH_ERROR"; payload: string };
 
 const initialState: State = {
-  filters: DEFAULT_FILTERS,
+  appliedFilters: DEFAULT_FILTERS,
+  draftFilters: DEFAULT_FILTERS,
   search: "",
   sort: "capacity-asc",
   page: 1,
@@ -61,31 +65,59 @@ const initialState: State = {
   error: null,
 };
 
+function cloneFilters(filters: Filters): Filters {
+  return {
+    ...filters,
+    timeRange: [...filters.timeRange] as [number, number],
+    amenityIds: [...filters.amenityIds],
+  };
+}
+
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "PATCH_FILTERS":
-      return { ...state, filters: { ...state.filters, ...action.payload }, page: 1 };
+    case "PATCH_DRAFT_FILTERS":
+      return { ...state, draftFilters: { ...state.draftFilters, ...action.payload } };
 
-    case "RESET":
-      return { ...state, filters: DEFAULT_FILTERS, search: "", page: 1 };
+    case "RESET_DRAFT_FILTERS":
+      return { ...state, draftFilters: cloneFilters(DEFAULT_FILTERS) };
+
+    case "APPLY_FILTERS":
+      return {
+        ...state,
+        appliedFilters: cloneFilters(state.draftFilters),
+        page: 1,
+      };
+
+    case "RESET_ALL_FILTERS":
+      return {
+        ...state,
+        appliedFilters: cloneFilters(DEFAULT_FILTERS),
+        draftFilters: cloneFilters(DEFAULT_FILTERS),
+        page: 1,
+      };
 
     case "REMOVE_CHIP": {
       const updates: Partial<Filters> = {};
       if (action.payload === "date") updates.date = "";
       if (action.payload === "capacity") updates.capacity = null;
       if (action.payload === "time") updates.timeRange = [0, 24];
-      return { ...state, filters: { ...state.filters, ...updates }, page: 1 };
-    }
-
-    case "REMOVE_AMENITY":
       return {
         ...state,
-        filters: {
-          ...state.filters,
-          amenityIds: state.filters.amenityIds.filter((id) => id !== action.payload),
-        },
+        appliedFilters: { ...state.appliedFilters, ...updates },
+        draftFilters: { ...state.draftFilters, ...updates },
         page: 1,
       };
+    }
+
+    case "REMOVE_AMENITY": {
+      const amenityIds = state.appliedFilters.amenityIds.filter((id) => id !== action.payload);
+      return {
+        ...state,
+        appliedFilters: { ...state.appliedFilters, amenityIds },
+        draftFilters: { ...state.draftFilters, amenityIds: [...amenityIds] },
+        page: 1,
+      };
+    }
 
     case "SET_SEARCH":
       return { ...state, search: action.payload, page: 1 };
@@ -107,7 +139,6 @@ function reducer(state: State, action: Action): State {
         ...state,
         isLoading: false,
         rooms: action.payload.rooms,
-        // Derive amenity filter options from the rooms payload.
         availableAmenities: action.payload.rooms
           .flatMap((room) => room.amenities ?? [])
           .filter((amenity, index, amenities) =>
@@ -134,7 +165,7 @@ export function useSearchRooms() {
     let cancelled = false;
     dispatch({ type: "FETCH_START" });
 
-    const params = toSearchParams(state.filters, state.search, state.page, state.pageSize);
+    const params = toSearchParams(state.appliedFilters, state.search, state.page, state.pageSize);
 
     fetchRooms(params)
       .then((response) => {
@@ -159,16 +190,16 @@ export function useSearchRooms() {
     return () => {
       cancelled = true;
     };
-  }, [state.filters, state.search, state.page, state.pageSize]);
+  }, [state.appliedFilters, state.search, state.page, state.pageSize]);
 
   const amenityFiltered = useMemo(() => {
-    if (state.filters.amenityIds.length === 0) return state.rooms;
+    if (state.appliedFilters.amenityIds.length === 0) return state.rooms;
     return state.rooms.filter(
       (room) =>
         room.amenities != null &&
-        state.filters.amenityIds.every((id) => room.amenities!.some((a) => a.id === id)),
+        state.appliedFilters.amenityIds.every((id) => room.amenities!.some((a) => a.id === id)),
     );
-  }, [state.rooms, state.filters.amenityIds]);
+  }, [state.rooms, state.appliedFilters.amenityIds]);
 
   const sorted = useMemo(() => {
     const copy = [...amenityFiltered];
@@ -185,13 +216,17 @@ export function useSearchRooms() {
   const activeChips = useMemo(() => {
     const chips: ActiveChip[] = [];
 
-    if (state.filters.date) {
-      chips.push({ kind: "filter", id: "date", label: `Date: ${state.filters.date}` });
+    if (state.appliedFilters.date) {
+      chips.push({ kind: "filter", id: "date", label: `Date: ${state.appliedFilters.date}` });
     }
-    if (state.filters.capacity !== null) {
-      chips.push({ kind: "filter", id: "capacity", label: `Capacity: ${state.filters.capacity}+` });
+    if (state.appliedFilters.capacity !== null) {
+      chips.push({
+        kind: "filter",
+        id: "capacity",
+        label: `Capacity: ${state.appliedFilters.capacity}+`,
+      });
     }
-    const [start, end] = state.filters.timeRange;
+    const [start, end] = state.appliedFilters.timeRange;
     if (start !== 0 || end !== 24) {
       const fmt = (h: number) => {
         const suffix = h >= 12 ? "PM" : "AM";
@@ -200,20 +235,22 @@ export function useSearchRooms() {
       };
       chips.push({ kind: "filter", id: "time", label: `Time: ${fmt(start)} – ${fmt(end)}` });
     }
-    state.filters.amenityIds.forEach((amenityId) => {
+    state.appliedFilters.amenityIds.forEach((amenityId) => {
       const option = state.availableAmenities.find((a) => a.id === amenityId);
       if (option) chips.push({ kind: "amenity", amenityId, label: option.label });
     });
 
     return chips;
-  }, [state.availableAmenities, state.filters]);
+  }, [state.appliedFilters, state.availableAmenities]);
 
   const patchFilters = useCallback(
-    (payload: Partial<Filters>) => dispatch({ type: "PATCH_FILTERS", payload }),
+    (payload: Partial<Filters>) => dispatch({ type: "PATCH_DRAFT_FILTERS", payload }),
     [],
   );
 
-  const resetFilters = useCallback(() => dispatch({ type: "RESET" }), []);
+  const resetDraftFilters = useCallback(() => dispatch({ type: "RESET_DRAFT_FILTERS" }), []);
+  const applyFilters = useCallback(() => dispatch({ type: "APPLY_FILTERS" }), []);
+  const resetFilters = useCallback(() => dispatch({ type: "RESET_ALL_FILTERS" }), []);
   const removeChip = useCallback(
     (id: "date" | "capacity" | "time") => dispatch({ type: "REMOVE_CHIP", payload: id }),
     [],
@@ -229,10 +266,11 @@ export function useSearchRooms() {
     (pageSize: number) => dispatch({ type: "SET_PAGE_SIZE", payload: pageSize }),
     [],
   );
-  const retry = useCallback(() => dispatch({ type: "RESET" }), []);
+  const retry = useCallback(() => dispatch({ type: "RESET_ALL_FILTERS" }), []);
 
   return {
-    filters: state.filters,
+    filters: state.appliedFilters,
+    draftFilters: state.draftFilters,
     search: state.search,
     sort: state.sort,
     page: state.page,
@@ -245,6 +283,8 @@ export function useSearchRooms() {
     totalPages,
     activeChips,
     patchFilters,
+    resetDraftFilters,
+    applyFilters,
     resetFilters,
     removeChip,
     removeAmenity,

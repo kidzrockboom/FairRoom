@@ -12,7 +12,7 @@ describe("useSearchRooms", () => {
     vi.clearAllMocks();
   });
 
-  it("fetches rooms with the backend paging shape and refetches on page size change", async () => {
+  it("applies filters only when requested and still refetches on page size change", async () => {
     vi.mocked(fetchRooms).mockResolvedValue({
       items: [
         {
@@ -55,6 +55,28 @@ describe("useSearchRooms", () => {
         { id: "wifi", label: "High-speed Wifi" },
         { id: "projector", label: "Projector / Screen" },
       ]);
+    });
+
+    act(() => {
+      result.current.patchFilters({ capacity: 12 });
+    });
+
+    expect(fetchRooms).toHaveBeenCalledTimes(1);
+    expect(result.current.filters.capacity).toBeNull();
+    expect(result.current.draftFilters.capacity).toBe(12);
+
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    await waitFor(() => {
+      expect(fetchRooms).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 1,
+          pageSize: 12,
+          minCapacity: 12,
+        }),
+      );
     });
 
     act(() => {
