@@ -45,15 +45,17 @@ pub async fn create_booking(
         return Err(api_error(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
-            "Request validation failed.",
-            Some(serde_json::json!({ "field": "startsAt", "reason": "startsAt must be in the future" })),
+            "Request failed, The start time should be in the future.",
+            Some(
+                serde_json::json!({ "field": "startsAt", "reason": "startsAt must be in the future" }),
+            ),
         ));
     }
     if starts_at >= ends_at {
         return Err(api_error(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
-            "Request validation failed.",
+            "Request failed, Booking time must be later than current time.",
             Some(
                 serde_json::json!({ "field": "endsAt", "reason": "endsAt must be later than startsAt" }),
             ),
