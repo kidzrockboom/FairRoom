@@ -17,6 +17,7 @@ describe("search rooms mappers", () => {
 
     expect(params.search).toBe("seminar");
     expect(params.minCapacity).toBe(12);
+    expect(params.amenityIds).toEqual(["projector"]);
     expect(params.page).toBe(3);
     expect(params.pageSize).toBe(12);
     expect(typeof params.startsAt).toBe("string");
@@ -39,5 +40,6 @@ describe("search rooms mappers", () => {
 
     expect(params.search).toBeUndefined();
     expect(params.minCapacity).toBeUndefined();
+    expect(params.amenityIds).toBeUndefined();
   });
 });

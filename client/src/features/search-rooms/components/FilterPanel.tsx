@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Filter, iconProps } from "@/lib/icons";
 import { cn, formatHour } from "@/lib/utils";
 import { useSearchRoomsContext } from "../context";
-import { AMENITY_OPTIONS, CAPACITY_OPTIONS } from "../content";
+import { CAPACITY_OPTIONS } from "../content";
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -17,7 +17,7 @@ function SectionLabel({ children }: { children: string }) {
 }
 
 export default function FilterPanel() {
-  const { filters, patchFilters, resetFilters } = useSearchRoomsContext();
+  const { filters, availableAmenities, patchFilters, resetFilters } = useSearchRoomsContext();
 
   return (
     <PanelFrame as="aside" variant="sidebar">
@@ -86,28 +86,32 @@ export default function FilterPanel() {
 
         <section className="space-y-3 px-6 py-4">
           <SectionLabel>Amenities</SectionLabel>
-          <div className="flex flex-col gap-2.5">
-            {AMENITY_OPTIONS.map(({ id, label }) => (
-              <label
-                key={id}
-                htmlFor={id}
-                className="flex cursor-pointer items-center gap-2.5 text-sm text-content"
-              >
-                <Checkbox
-                  id={id}
-                  checked={filters.amenityIds.includes(id)}
-                  onCheckedChange={(checked) =>
-                    patchFilters({
-                      amenityIds: checked
-                        ? [...filters.amenityIds, id]
-                        : filters.amenityIds.filter((a) => a !== id),
-                    })
-                  }
-                />
-                {label}
-              </label>
-            ))}
-          </div>
+          {availableAmenities.length > 0 ? (
+            <div className="flex flex-col gap-2.5">
+              {availableAmenities.map(({ id, label }) => (
+                <label
+                  key={id}
+                  htmlFor={id}
+                  className="flex cursor-pointer items-center gap-2.5 text-sm text-content"
+                >
+                  <Checkbox
+                    id={id}
+                    checked={filters.amenityIds.includes(id)}
+                    onCheckedChange={(checked) =>
+                      patchFilters({
+                        amenityIds: checked
+                          ? [...filters.amenityIds, id]
+                          : filters.amenityIds.filter((amenityId) => amenityId !== id),
+                      })
+                    }
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Amenities will appear from loaded rooms.</p>
+          )}
         </section>
       </div>
 

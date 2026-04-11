@@ -18,6 +18,7 @@ export interface SearchRoomsParams {
   minCapacity?: number;
   startsAt?: string;
   endsAt?: string;
+  amenityIds?: string[];
   page?: number;
   pageSize?: number;
 }

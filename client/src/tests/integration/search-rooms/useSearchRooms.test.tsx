@@ -26,7 +26,10 @@ describe("useSearchRooms", () => {
           status: "operational",
           usageNotes: "Quiet space",
           createdAt: "2026-04-10T00:00:00.000Z",
-          amenities: [],
+          amenities: [
+            { id: "wifi", label: "High-speed Wifi" },
+            { id: "projector", label: "Projector / Screen" },
+          ],
         },
       ],
       page: 1,
@@ -48,6 +51,10 @@ describe("useSearchRooms", () => {
     await waitFor(() => {
       expect(result.current.rooms).toHaveLength(1);
       expect(result.current.totalPages).toBe(1);
+      expect(result.current.availableAmenities).toEqual([
+        { id: "wifi", label: "High-speed Wifi" },
+        { id: "projector", label: "Projector / Screen" },
+      ]);
     });
 
     act(() => {

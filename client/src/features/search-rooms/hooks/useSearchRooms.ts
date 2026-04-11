@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer } from "react";
-import type { Room } from "@/api/contracts";
-import { AMENITY_OPTIONS } from "../content";
+import type { Amenity, Room } from "@/api/contracts";
 import { toSearchParams } from "../mappers";
 import { fetchRooms } from "../roomSearchService";
 import type { Filters } from "../schemas";
@@ -27,6 +26,7 @@ type State = {
   page: number;
   pageSize: number;
   rooms: Room[];
+  availableAmenities: Amenity[];
   totalRooms: number;
   isLoading: boolean;
   error: string | null;
@@ -42,7 +42,10 @@ type Action =
   | { type: "SET_PAGE"; payload: number }
   | { type: "SET_PAGE_SIZE"; payload: number }
   | { type: "FETCH_START" }
-  | { type: "FETCH_SUCCESS"; payload: { rooms: Room[]; totalRooms: number; page: number; pageSize: number } }
+  | {
+      type: "FETCH_SUCCESS";
+      payload: { rooms: Room[]; totalRooms: number; page: number; pageSize: number };
+    }
   | { type: "FETCH_ERROR"; payload: string };
 
 const initialState: State = {
@@ -52,6 +55,7 @@ const initialState: State = {
   page: 1,
   pageSize: DEFAULT_PAGE_SIZE,
   rooms: [],
+  availableAmenities: [],
   totalRooms: 0,
   isLoading: false,
   error: null,
@@ -103,6 +107,13 @@ function reducer(state: State, action: Action): State {
         ...state,
         isLoading: false,
         rooms: action.payload.rooms,
+        // Derive amenity filter options from the rooms payload.
+        availableAmenities: action.payload.rooms
+          .flatMap((room) => room.amenities ?? [])
+          .filter((amenity, index, amenities) =>
+            amenities.findIndex((item) => item.id === amenity.id) === index,
+          )
+          .sort((a, b) => a.label.localeCompare(b.label)),
         totalRooms: action.payload.totalRooms,
         page: action.payload.page,
         pageSize: action.payload.pageSize,
@@ -190,12 +201,12 @@ export function useSearchRooms() {
       chips.push({ kind: "filter", id: "time", label: `Time: ${fmt(start)} – ${fmt(end)}` });
     }
     state.filters.amenityIds.forEach((amenityId) => {
-      const option = AMENITY_OPTIONS.find((a) => a.id === amenityId);
+      const option = state.availableAmenities.find((a) => a.id === amenityId);
       if (option) chips.push({ kind: "amenity", amenityId, label: option.label });
     });
 
     return chips;
-  }, [state.filters]);
+  }, [state.availableAmenities, state.filters]);
 
   const patchFilters = useCallback(
     (payload: Partial<Filters>) => dispatch({ type: "PATCH_FILTERS", payload }),
@@ -229,6 +240,7 @@ export function useSearchRooms() {
     isLoading: state.isLoading,
     error: state.error,
     rooms: sorted,
+    availableAmenities: state.availableAmenities,
     totalRooms: state.totalRooms,
     totalPages,
     activeChips,

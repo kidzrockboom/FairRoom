@@ -22,6 +22,7 @@ export function toSearchParams(
     minCapacity: filters.capacity ?? undefined,
     startsAt,
     endsAt,
+    amenityIds: filters.amenityIds.length > 0 ? filters.amenityIds : undefined,
     page,
     pageSize,
   };
