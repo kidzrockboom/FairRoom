@@ -41,6 +41,14 @@ pub async fn create_booking(
     let ends_at = payload.ends_at.naive_utc();
 
     // ── Validation ────────────────────────────────────────────────────────────
+    if starts_at <= Utc::now().naive_utc() {
+        return Err(api_error(
+            StatusCode::BAD_REQUEST,
+            "VALIDATION_ERROR",
+            "Request validation failed.",
+            Some(serde_json::json!({ "field": "startsAt", "reason": "startsAt must be in the future" })),
+        ));
+    }
     if starts_at >= ends_at {
         return Err(api_error(
             StatusCode::BAD_REQUEST,
