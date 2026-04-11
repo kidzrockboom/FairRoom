@@ -306,8 +306,8 @@ pub async fn update_booking(
         ));
     }
 
-    let new_starts_at = payload.starts_at.map(|dt| dt.naive_utc()).unwrap_or(b.starts_at);
-    let new_ends_at = payload.ends_at.map(|dt| dt.naive_utc()).unwrap_or(b.ends_at);
+    let new_starts_at = payload.starts_at.unwrap_or(b.starts_at);
+    let new_ends_at = payload.ends_at.unwrap_or(b.ends_at);
 
     if new_starts_at >= new_ends_at {
         return Err(api_error(

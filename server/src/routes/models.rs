@@ -3,11 +3,60 @@ use axum::{
     extract::FromRequestParts,
     http::{StatusCode, request::Parts},
 };
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
 use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
+
+// ── Flexible datetime deserializers ───────────────────────────────────────────
+// Accepts both timezone-aware RFC 3339 ("2026-05-05T09:00:00Z", "+01:00")
+// and naive ISO 8601 ("2026-05-05T09:00:00"). Naive strings are treated as UTC.
+
+mod flexible_dt {
+    use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
+    use serde::{Deserialize, Deserializer};
+
+    /// For request bodies: deserialise into `DateTime<Utc>`.
+    pub fn deserialize<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(d)?;
+        if let Ok(dt) = DateTime::<FixedOffset>::parse_from_rfc3339(&s) {
+            return Ok(dt.with_timezone(&Utc));
+        }
+        for fmt in &["%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S%.f"] {
+            if let Ok(ndt) = NaiveDateTime::parse_from_str(&s, fmt) {
+                return Ok(ndt.and_utc());
+            }
+        }
+        Err(serde::de::Error::custom(format!("invalid datetime: {s}")))
+    }
+
+    /// For optional query params: deserialise into `Option<NaiveDateTime>`.
+    pub fn deserialize_opt_naive<'de, D>(d: D) -> Result<Option<NaiveDateTime>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let opt = Option::<String>::deserialize(d)?;
+        let s = match opt {
+            None => return Ok(None),
+            Some(s) if s.is_empty() => return Ok(None),
+            Some(s) => s,
+        };
+        // Timezone-aware → convert to UTC naive
+        if let Ok(dt) = DateTime::<FixedOffset>::parse_from_rfc3339(&s) {
+            return Ok(Some(dt.with_timezone(&Utc).naive_utc()));
+        }
+        for fmt in &["%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S%.f"] {
+            if let Ok(ndt) = NaiveDateTime::parse_from_str(&s, fmt) {
+                return Ok(Some(ndt));
+            }
+        }
+        Err(serde::de::Error::custom(format!("invalid datetime: {s}")))
+    }
+}
 
 // ── Error types ───────────────────────────────────────────────────────────────
 
@@ -180,7 +229,9 @@ pub struct AccountActivitiesResponse {
 #[serde(rename_all = "camelCase")]
 pub struct CreateBookingRequest {
     pub room_id: Uuid,
+    #[serde(deserialize_with = "flexible_dt::deserialize")]
     pub starts_at: DateTime<Utc>,
+    #[serde(deserialize_with = "flexible_dt::deserialize")]
     pub ends_at: DateTime<Utc>,
     pub purpose: String,
     pub expected_attendees: i32,
@@ -189,8 +240,10 @@ pub struct CreateBookingRequest {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateBookingRequest {
-    pub starts_at: Option<DateTime<Utc>>,
-    pub ends_at: Option<DateTime<Utc>>,
+    #[serde(default, deserialize_with = "flexible_dt::deserialize_opt_naive")]
+    pub starts_at: Option<NaiveDateTime>,
+    #[serde(default, deserialize_with = "flexible_dt::deserialize_opt_naive")]
+    pub ends_at: Option<NaiveDateTime>,
 }
 
 #[derive(Deserialize, Default)]
@@ -282,7 +335,9 @@ pub struct ReminderQuery {
 pub struct RoomQuery {
     pub search: Option<String>,
     pub min_capacity: Option<i32>,
+    #[serde(default, deserialize_with = "flexible_dt::deserialize_opt_naive")]
     pub starts_at: Option<NaiveDateTime>,
+    #[serde(default, deserialize_with = "flexible_dt::deserialize_opt_naive")]
     pub ends_at: Option<NaiveDateTime>,
     pub page: Option<u64>,
     pub page_size: Option<u64>,
@@ -300,7 +355,9 @@ pub struct AdminBookingQuery {
     pub status: Option<String>,
     pub user_id: Option<Uuid>,
     pub room_id: Option<Uuid>,
+    #[serde(default, deserialize_with = "flexible_dt::deserialize_opt_naive")]
     pub starts_at: Option<NaiveDateTime>,
+    #[serde(default, deserialize_with = "flexible_dt::deserialize_opt_naive")]
     pub ends_at: Option<NaiveDateTime>,
     pub page: Option<u64>,
     pub page_size: Option<u64>,
@@ -548,7 +605,9 @@ pub struct ReminderListResponse {
 #[serde(rename_all = "camelCase")]
 pub struct RoomUsageQuery {
     pub group_by: Option<String>,
+    #[serde(default, deserialize_with = "flexible_dt::deserialize_opt_naive")]
     pub starts_at: Option<NaiveDateTime>,
+    #[serde(default, deserialize_with = "flexible_dt::deserialize_opt_naive")]
     pub ends_at: Option<NaiveDateTime>,
 }
 
