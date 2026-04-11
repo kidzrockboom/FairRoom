@@ -14,15 +14,31 @@ use uuid::Uuid;
 // and naive ISO 8601 ("2026-05-05T09:00:00"). Naive strings are treated as UTC.
 
 mod flexible_dt {
-    use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
+    use chrono::{DateTime, Duration, FixedOffset, NaiveDateTime, Utc};
     use serde::{Deserialize, Deserializer};
+
+    /// Normalise `T24:00:00` (end-of-day sentinel used by some UIs) to
+    /// the start of the next day before attempting to parse.
+    fn normalise(s: &str) -> std::borrow::Cow<str> {
+        if let Some(pos) = s.find("T24:") {
+            let date_part = &s[..pos];
+            let suffix = &s[pos + 4..]; // everything after "T24:"
+            if let Ok(d) = chrono::NaiveDate::parse_from_str(date_part, "%Y-%m-%d") {
+                let next = d + Duration::days(1);
+                return format!("{}T00:{}", next.format("%Y-%m-%d"), suffix).into();
+            }
+        }
+        s.into()
+    }
 
     /// For request bodies: deserialise into `DateTime<Utc>`.
     pub fn deserialize<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
     where
         D: Deserializer<'de>,
     {
-        let s = String::deserialize(d)?;
+        let raw = String::deserialize(d)?;
+        eprintln!("[flexible_dt] body datetime: {raw}");
+        let s = normalise(&raw);
         if let Ok(dt) = DateTime::<FixedOffset>::parse_from_rfc3339(&s) {
             return Ok(dt.with_timezone(&Utc));
         }
@@ -40,12 +56,13 @@ mod flexible_dt {
         D: Deserializer<'de>,
     {
         let opt = Option::<String>::deserialize(d)?;
-        let s = match opt {
+        let raw = match opt {
             None => return Ok(None),
             Some(s) if s.is_empty() => return Ok(None),
             Some(s) => s,
         };
-        // Timezone-aware → convert to UTC naive
+        eprintln!("[flexible_dt] query datetime: {raw}");
+        let s = normalise(&raw);
         if let Ok(dt) = DateTime::<FixedOffset>::parse_from_rfc3339(&s) {
             return Ok(Some(dt.with_timezone(&Utc).naive_utc()));
         }
