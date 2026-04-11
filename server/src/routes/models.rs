@@ -27,7 +27,12 @@ pub struct ApiErrorResponse {
 pub type ApiError = (StatusCode, Json<ApiErrorResponse>);
 pub type ApiResult<T> = Result<T, ApiError>;
 
-pub fn api_error(status: StatusCode, code: &str, message: &str, details: Option<Value>) -> ApiError {
+pub fn api_error(
+    status: StatusCode,
+    code: &str,
+    message: &str,
+    details: Option<Value>,
+) -> ApiError {
     (
         status,
         Json(ApiErrorResponse {
@@ -106,12 +111,14 @@ where
     type Rejection = ApiError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let unauth = || api_error(
-            StatusCode::UNAUTHORIZED,
-            "UNAUTHENTICATED",
-            "Authentication is required for this endpoint.",
-            None,
-        );
+        let unauth = || {
+            api_error(
+                StatusCode::UNAUTHORIZED,
+                "UNAUTHENTICATED",
+                "Authentication is required for this endpoint.",
+                None,
+            )
+        };
 
         let auth_header = parts
             .headers
@@ -120,9 +127,7 @@ where
             .to_str()
             .map_err(|_| unauth())?;
 
-        let token = auth_header
-            .strip_prefix("Bearer ")
-            .ok_or_else(unauth)?;
+        let token = auth_header.strip_prefix("Bearer ").ok_or_else(unauth)?;
 
         let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "secret".into());
 

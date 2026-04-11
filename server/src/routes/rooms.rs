@@ -4,11 +4,11 @@ use axum::{
     http::StatusCode,
 };
 use chrono::NaiveDate;
-use sea_orm::{
-    ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait,
-    PaginatorTrait, QueryFilter, QueryOrder,
-};
 use sea_orm::sea_query::Expr;
+use sea_orm::{
+    ColumnTrait, DatabaseConnection, EntityTrait, ExprTrait, PaginatorTrait, QueryFilter,
+    QueryOrder,
+};
 use uuid::Uuid;
 
 use crate::entity::*;
@@ -42,7 +42,10 @@ async fn fetch_amenities(
 
     Ok(amenities
         .into_iter()
-        .map(|a| AmenityResponse { id: a.id.to_string(), label: a.label })
+        .map(|a| AmenityResponse {
+            id: a.id.to_string(),
+            label: a.label,
+        })
         .collect())
 }
 
@@ -75,7 +78,9 @@ pub async fn get_rooms(
                 StatusCode::BAD_REQUEST,
                 "VALIDATION_ERROR",
                 "Request validation failed.",
-                Some(serde_json::json!({ "field": "startsAt", "reason": "startsAt must be before endsAt" })),
+                Some(
+                    serde_json::json!({ "field": "startsAt", "reason": "startsAt must be before endsAt" }),
+                ),
             ));
         }
         query = query.filter(
@@ -93,9 +98,14 @@ pub async fn get_rooms(
         );
     }
 
-    let paginator = query.order_by_asc(room::Column::RoomName).paginate(&db, page_size);
+    let paginator = query
+        .order_by_asc(room::Column::RoomName)
+        .paginate(&db, page_size);
     let total = paginator.num_items().await.map_err(internal_error)?;
-    let rooms = paginator.fetch_page(page - 1).await.map_err(internal_error)?;
+    let rooms = paginator
+        .fetch_page(page - 1)
+        .await
+        .map_err(internal_error)?;
 
     let mut items = Vec::with_capacity(rooms.len());
     for r in rooms {
@@ -114,7 +124,12 @@ pub async fn get_rooms(
         });
     }
 
-    Ok(Json(PublicRoomListResponse { items, page, page_size, total }))
+    Ok(Json(PublicRoomListResponse {
+        items,
+        page,
+        page_size,
+        total,
+    }))
 }
 
 pub async fn get_room(
@@ -125,12 +140,14 @@ pub async fn get_room(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(
-            StatusCode::NOT_FOUND,
-            "ROOM_NOT_FOUND",
-            "The requested room could not be found.",
-            None,
-        ))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The requested room could not be found.",
+                None,
+            )
+        })?;
 
     let amenities = fetch_amenities(&db, room.id).await?;
 
@@ -157,15 +174,16 @@ pub async fn get_room_bookings(
         .one(&db)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| api_error(
-            StatusCode::NOT_FOUND,
-            "ROOM_NOT_FOUND",
-            "The requested room could not be found.",
-            None,
-        ))?;
+        .ok_or_else(|| {
+            api_error(
+                StatusCode::NOT_FOUND,
+                "ROOM_NOT_FOUND",
+                "The requested room could not be found.",
+                None,
+            )
+        })?;
 
-    let mut query = booking::Entity::find()
-        .filter(booking::Column::RoomId.eq(room_id));
+    let mut query = booking::Entity::find().filter(booking::Column::RoomId.eq(room_id));
 
     if let Some(date_str) = params.date {
         let date = NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
