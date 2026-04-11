@@ -526,18 +526,58 @@ pub struct RoomUsageQuery {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RoomUsageItem {
-    pub key: String,
-    pub total_bookings: i64,
-    pub total_hours: f64,
-    pub no_show_count: i64,
+pub struct AnalyticsStat {
+    pub value: String,
+    pub text: String,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RoomUsageResponse {
+pub struct RoomUsageSummary {
+    pub most_popular_room: AnalyticsStat,
+    pub average_booking_duration: AnalyticsStat,
+    pub no_show_rate: AnalyticsStat,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UsageDistributionItem {
+    pub room: String,
+    pub hours: f64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoomPerformanceItem {
+    pub room_identifier: String,
+    pub total_usage_hours: f64,
+    pub occupancy_percentage: f64,
+    pub efficiency: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnalyticsInsightItem {
+    pub title: String,
+    pub description: String,
+    pub meta: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoomUsageInsights {
+    pub recommendation: AnalyticsInsightItem,
+    pub anomalies: Vec<AnalyticsInsightItem>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoomUsageAnalyticsResponse {
     pub group_by: String,
     pub starts_at: Option<String>,
     pub ends_at: Option<String>,
-    pub items: Vec<RoomUsageItem>,
+    pub summary: RoomUsageSummary,
+    pub usage_distribution: Vec<UsageDistributionItem>,
+    pub performance_breakdown: Vec<RoomPerformanceItem>,
+    pub insights: RoomUsageInsights,
 }

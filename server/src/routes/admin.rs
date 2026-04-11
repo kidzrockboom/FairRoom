@@ -697,7 +697,7 @@ pub async fn admin_get_room_usage(
     State(db): State<DatabaseConnection>,
     auth: AuthUser,
     Query(params): Query<RoomUsageQuery>,
-) -> ApiResult<Json<RoomUsageResponse>> {
+) -> ApiResult<Json<RoomUsageAnalyticsResponse>> {
     require_admin(&auth)?;
 
     let group_by = params.group_by.as_deref().unwrap_or("room").to_string();
@@ -741,20 +741,131 @@ pub async fn admin_get_room_usage(
     .await
     .map_err(internal_error)?;
 
-    let items = rows
-        .into_iter()
-        .map(|r| RoomUsageItem {
-            key: r.key,
-            total_bookings: r.total_bookings,
-            total_hours: r.total_hours,
-            no_show_count: r.no_show_count,
+    // ── Aggregate totals ───────────────────────────────────────────────────────
+    let total_bookings: i64 = rows.iter().map(|r| r.total_bookings).sum();
+    let total_no_shows: i64 = rows.iter().map(|r| r.no_show_count).sum();
+    let total_hours: f64 = rows.iter().map(|r| r.total_hours).sum();
+
+    // ── Summary stats ──────────────────────────────────────────────────────────
+    let most_popular = rows.iter().max_by(|a, b| a.total_bookings.cmp(&b.total_bookings));
+    let most_popular_room = AnalyticsStat {
+        value: most_popular.map(|r| r.key.clone()).unwrap_or_else(|| "N/A".into()),
+        text: most_popular
+            .map(|r| format!("{} bookings", r.total_bookings))
+            .unwrap_or_else(|| "No bookings recorded".into()),
+    };
+
+    let avg_duration_hrs = if total_bookings > 0 { total_hours / total_bookings as f64 } else { 0.0 };
+    let avg_duration_mins = (avg_duration_hrs * 60.0).round() as i64;
+    let average_booking_duration = AnalyticsStat {
+        value: format!("{:.1}h", avg_duration_hrs),
+        text: format!("{} min avg per booking", avg_duration_mins),
+    };
+
+    let no_show_pct = if total_bookings > 0 {
+        (total_no_shows as f64 / total_bookings as f64) * 100.0
+    } else {
+        0.0
+    };
+    let no_show_rate = AnalyticsStat {
+        value: format!("{:.1}%", no_show_pct),
+        text: format!("{} of {} bookings were no-shows", total_no_shows, total_bookings),
+    };
+
+    // ── Usage distribution ─────────────────────────────────────────────────────
+    let usage_distribution: Vec<UsageDistributionItem> = rows
+        .iter()
+        .map(|r| UsageDistributionItem {
+            room: r.key.clone(),
+            hours: (r.total_hours * 10.0).round() / 10.0,
         })
         .collect();
 
-    Ok(Json(RoomUsageResponse {
+    // ── Performance breakdown ──────────────────────────────────────────────────
+    // Available hours = days in range × 12 h/day (8 am – 8 pm operating hours).
+    // If no range is supplied, default to a 30-day window.
+    let days_in_range = match (params.starts_at, params.ends_at) {
+        (Some(s), Some(e)) => Ord::max((e - s).num_days(), 1),
+        _ => 30,
+    };
+    let available_hours_per_room = days_in_range as f64 * 12.0;
+
+    let performance_breakdown: Vec<RoomPerformanceItem> = rows
+        .iter()
+        .map(|r| {
+            let occupancy_pct = if available_hours_per_room > 0.0 {
+                (r.total_hours / available_hours_per_room * 100.0).min(100.0)
+            } else {
+                0.0
+            };
+            let efficiency = if occupancy_pct >= 60.0 {
+                "High"
+            } else if occupancy_pct >= 25.0 {
+                "Medium"
+            } else {
+                "Low"
+            };
+            RoomPerformanceItem {
+                room_identifier: r.key.clone(),
+                total_usage_hours: (r.total_hours * 10.0).round() / 10.0,
+                occupancy_percentage: (occupancy_pct * 10.0).round() / 10.0,
+                efficiency: efficiency.into(),
+            }
+        })
+        .collect();
+
+    // ── Insights ───────────────────────────────────────────────────────────────
+    let least_used = rows.iter().min_by(|a, b| a.total_hours.partial_cmp(&b.total_hours).unwrap());
+    let recommendation = if let Some(room) = least_used {
+        AnalyticsInsightItem {
+            title: format!("Consider promoting {}", room.key),
+            description: format!(
+                "{} has the lowest utilisation ({:.1} h). Consider making it more visible or reviewing its availability.",
+                room.key, room.total_hours
+            ),
+            meta: format!("{} bookings recorded", room.total_bookings),
+        }
+    } else {
+        AnalyticsInsightItem {
+            title: "No data available".into(),
+            description: "No booking data found for the selected period.".into(),
+            meta: String::new(),
+        }
+    };
+
+    let anomalies: Vec<AnalyticsInsightItem> = rows
+        .iter()
+        .filter(|r| {
+            r.total_bookings > 0
+                && (r.no_show_count as f64 / r.total_bookings as f64) > 0.25
+        })
+        .map(|r| {
+            let pct = (r.no_show_count as f64 / r.total_bookings as f64 * 100.0).round() as i64;
+            AnalyticsInsightItem {
+                title: format!("High no-show rate in {}", r.key),
+                description: format!(
+                    "{} has a {}% no-show rate ({} of {} bookings).",
+                    r.key, pct, r.no_show_count, r.total_bookings
+                ),
+                meta: format!("{}% no-show", pct),
+            }
+        })
+        .collect();
+
+    Ok(Json(RoomUsageAnalyticsResponse {
         group_by,
         starts_at: params.starts_at.map(|dt| dt.and_utc().to_rfc3339()),
         ends_at: params.ends_at.map(|dt| dt.and_utc().to_rfc3339()),
-        items,
+        summary: RoomUsageSummary {
+            most_popular_room,
+            average_booking_duration,
+            no_show_rate,
+        },
+        usage_distribution,
+        performance_breakdown,
+        insights: RoomUsageInsights {
+            recommendation,
+            anomalies,
+        },
     }))
 }
