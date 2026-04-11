@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::entity::*;
-use crate::routes::helper::{status_to_str, user_to_response};
+use crate::routes::helper::{auto_complete_past_bookings, status_to_str, user_to_response};
 use crate::routes::models::*;
 
 const DEFAULT_PAGE_SIZE: u64 = 20;
@@ -175,6 +175,8 @@ pub async fn get_my_bookings(
     auth: AuthUser,
     Query(params): Query<MyBookingQuery>,
 ) -> ApiResult<Json<BookingListResponse>> {
+    auto_complete_past_bookings(&db).await?;
+
     let page_num = params.page.unwrap_or(1).max(1);
     let page_size = params.page_size.unwrap_or(DEFAULT_PAGE_SIZE);
     let now = Utc::now().naive_utc();

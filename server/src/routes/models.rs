@@ -3,7 +3,7 @@ use axum::{
     extract::FromRequestParts,
     http::{StatusCode, request::Parts},
 };
-use chrono::NaiveDateTime;
+use chrono::{DateTime, NaiveDateTime, Utc};
 use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -180,8 +180,8 @@ pub struct AccountActivitiesResponse {
 #[serde(rename_all = "camelCase")]
 pub struct CreateBookingRequest {
     pub room_id: Uuid,
-    pub starts_at: NaiveDateTime,
-    pub ends_at: NaiveDateTime,
+    pub starts_at: DateTime<Utc>,
+    pub ends_at: DateTime<Utc>,
     pub purpose: String,
     pub expected_attendees: i32,
 }
@@ -189,8 +189,8 @@ pub struct CreateBookingRequest {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateBookingRequest {
-    pub starts_at: Option<NaiveDateTime>,
-    pub ends_at: Option<NaiveDateTime>,
+    pub starts_at: Option<DateTime<Utc>>,
+    pub ends_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Deserialize, Default)]

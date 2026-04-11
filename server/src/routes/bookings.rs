@@ -36,8 +36,12 @@ pub async fn create_booking(
     auth: AuthUser,
     Json(payload): Json<CreateBookingRequest>,
 ) -> ApiResult<(StatusCode, Json<BookingResponse>)> {
+    // ── Normalise to UTC naive for storage ────────────────────────────────────
+    let starts_at = payload.starts_at.naive_utc();
+    let ends_at = payload.ends_at.naive_utc();
+
     // ── Validation ────────────────────────────────────────────────────────────
-    if payload.starts_at >= payload.ends_at {
+    if starts_at >= ends_at {
         return Err(api_error(
             StatusCode::BAD_REQUEST,
             "VALIDATION_ERROR",
@@ -130,8 +134,8 @@ pub async fn create_booking(
         .filter(booking::Column::Status.eq(StatusEnum::Active))
         .filter(
             booking::Column::EndsAt
-                .gt(payload.starts_at)
-                .and(booking::Column::StartsAt.lt(payload.ends_at)),
+                .gt(starts_at)
+                .and(booking::Column::StartsAt.lt(ends_at)),
         )
         .one(&db)
         .await
@@ -144,8 +148,8 @@ pub async fn create_booking(
             "The selected time range overlaps an existing active booking.",
             Some(serde_json::json!({
                 "roomId": payload.room_id.to_string(),
-                "startsAt": payload.starts_at.and_utc().to_rfc3339(),
-                "endsAt": payload.ends_at.and_utc().to_rfc3339()
+                "startsAt": starts_at.and_utc().to_rfc3339(),
+                "endsAt": ends_at.and_utc().to_rfc3339()
             })),
         ));
     }
@@ -156,8 +160,8 @@ pub async fn create_booking(
         id: Set(Uuid::new_v4()),
         user_id: Set(auth.user_id),
         room_id: Set(payload.room_id),
-        starts_at: Set(payload.starts_at),
-        ends_at: Set(payload.ends_at),
+        starts_at: Set(starts_at),
+        ends_at: Set(ends_at),
         status: Set(StatusEnum::Active),
         checked_in: Set(false),
         created_at: Set(now),
@@ -284,8 +288,8 @@ pub async fn update_booking(
         ));
     }
 
-    let new_starts_at = payload.starts_at.unwrap_or(b.starts_at);
-    let new_ends_at = payload.ends_at.unwrap_or(b.ends_at);
+    let new_starts_at = payload.starts_at.map(|dt| dt.naive_utc()).unwrap_or(b.starts_at);
+    let new_ends_at = payload.ends_at.map(|dt| dt.naive_utc()).unwrap_or(b.ends_at);
 
     if new_starts_at >= new_ends_at {
         return Err(api_error(

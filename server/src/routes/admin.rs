@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::entity::sea_orm_active_enums::StatusEnum;
 use crate::entity::*;
-use crate::routes::helper::status_to_str;
+use crate::routes::helper::{auto_complete_past_bookings, status_to_str};
 use crate::routes::models::*;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -107,6 +107,7 @@ pub async fn admin_get_bookings(
     Query(params): Query<AdminBookingQuery>,
 ) -> ApiResult<Json<AdminBookingListResponse>> {
     require_admin(&auth)?;
+    auto_complete_past_bookings(&db).await?;
 
     let page = Ord::max(params.page.unwrap_or(1), 1);
     let page_size = params.page_size.unwrap_or(DEFAULT_PAGE_SIZE);

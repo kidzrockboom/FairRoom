@@ -1,6 +1,8 @@
-use super::models::Claims;
+use super::models::{internal_error, ApiError, Claims};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{EncodingKey, Header, encode};
+use sea_orm::{ConnectionTrait, DatabaseConnection};
+
 
 pub fn generate_jwt(user_id: &str, email: &str, role: &str) -> String {
     let expiration = Utc::now()
@@ -42,6 +44,20 @@ pub fn user_to_response(user: &crate::entity::user::Model) -> super::models::Use
         role: role_to_str(&user.role),
         created_at: user.created_at.and_utc().to_rfc3339(),
     }
+}
+
+/// Marks any Active bookings whose ends_at has passed as Completed.
+/// Call this at the start of any endpoint that reads bookings to keep statuses fresh.
+pub async fn auto_complete_past_bookings(db: &DatabaseConnection) -> Result<(), ApiError> {
+    let sql = r#"
+        UPDATE booking
+        SET status = 'completed', updated_at = NOW()
+        WHERE status = 'active' AND ends_at < NOW()
+    "#;
+    db.execute_unprepared(sql)
+        .await
+        .map_err(internal_error)?;
+    Ok(())
 }
 
 /// Converts a booking StatusEnum to its canonical string value.
